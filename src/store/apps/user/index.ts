@@ -35,7 +35,7 @@ export const addUser = createAsyncThunk(
   async (data: { [key: string]: number | string }, { getState, dispatch }: Redux) => {
     const response = await axios.post(`${process.env.NEXT_PUBLIC_DOCUMENTAL}`, data)
     dispatch(fetchData(getState()))
-    //console.log(response)
+    console.log(response)
 
     return response
   }

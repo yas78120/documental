@@ -35,17 +35,17 @@ import { Direction } from '@mui/material'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import user from 'src/store/apps/user'
+import { useDropzone } from 'react-dropzone'
 
 interface docData {
   numberDocument: string
   title: string
   authorDocument: string
-  digitalUbication: string
   documentType: string
   stateDocument: string
   nivelAcces: string
   description: string
-  category: string
+  file: string
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
@@ -64,19 +64,8 @@ const schema = yup.object().shape({
   stateDocument: yup.string().required(),
   nivelAcces: yup.string().required(),
   description: yup.string().required(),
-  category: yup.string().required()
+  file: yup.string().required()
 })
-const defaultValues = {
-  numberDocument: '',
-  title: '',
-  authorDocument: '',
-  digitalUbication: '',
-  documentType: '',
-  stateDocument: '',
-  nivelAcces: '',
-  description: '',
-  category: ''
-}
 
 const SidebarEditUser = (props: { docId: string }) => {
   const [state, setState] = useState<boolean>(false)
@@ -88,12 +77,11 @@ const SidebarEditUser = (props: { docId: string }) => {
     numberDocument: '',
     title: '',
     authorDocument: '',
-    digitalUbication: '',
     documentType: '',
     stateDocument: '',
     nivelAcces: '',
     description: '',
-    category: ''
+    file: ''
   })
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -112,7 +100,6 @@ const SidebarEditUser = (props: { docId: string }) => {
     control,
     formState: { errors }
   } = useForm({
-    defaultValues,
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
@@ -123,7 +110,7 @@ const SidebarEditUser = (props: { docId: string }) => {
       .get<docData>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
       .then(response => {
         setDoc(response.data)
-        //console.log(response)
+        console.log(response)
       })
       .catch(error => {
         console.error(error)
@@ -138,31 +125,58 @@ const SidebarEditUser = (props: { docId: string }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDoc({ ...doc, [e.target.name]: e.target.value })
+    console.log(doc)
   }
 
   const dispatch = useDispatch()
+
+  const convertFileToBase64 = (file: File) =>
+    new Promise<string | ArrayBuffer | null>((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        resolve(reader.result)
+      }
+
+      reader.onerror = reject
+
+      reader.readAsDataURL(file)
+    })
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
     try {
+      if (file) {
+        const base64File = await convertFileToBase64(file)
+        doc.file = base64File as string
+      }
+      console.log(doc)
       const response = await axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`, doc)
-
+      console.log(response)
       toggleDrawer(false)
-      
+
       //console.log(response)
     } catch (error) {
       console.error(error)
     }
   }
+  const [file, setFile] = useState<File | null>(null)
+  const onDrop = (acceptedFiles: File[]) => {
+    setFile(acceptedFiles[0])
+  }
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop })
 
   // ** Hooks
 
   return (
     <>
-      <Button style={{ backgroundColor: '#94bb68', color: 'white', borderRadius: '10px' }} onClick={toggleDrawer(true)}>
-        EDITAR
-      </Button>
+      <div onClick={toggleDrawer(true)}>
+        <Icon icon='mdi:pencil-outline' fontSize={20} onClick={toggleDrawer(true)} />
+        Editar
+      </div>
+
       <Drawer
         style={{ border: '2px solid white', margin: 'theme.spacing(2)' }}
         open={state}
@@ -174,7 +188,7 @@ const SidebarEditUser = (props: { docId: string }) => {
       >
         <Header>
           <Typography variant='h6'>{doc.numberDocument}</Typography>
-          <IconButton size='small' onClick={toggleDrawer(true)} sx={{ color: 'text.primary' }}>
+          <IconButton size='small' onClick={toggleDrawer(false)} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Header>
@@ -196,7 +210,6 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{errors.title.message}</FormHelperText>}
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -214,30 +227,8 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.authorDocument && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.authorDocument.message}</FormHelperText>
-              )}
             </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='digitalUbication'
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Ubicacion'
-                    onChange={handleChange}
-                    value={doc.digitalUbication}
-                    error={Boolean(errors.digitalUbication)}
-                    autoComplete='off'
-                  />
-                )}
-              />
-              {errors.digitalUbication && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.digitalUbication.message}</FormHelperText>
-              )}
-            </FormControl>
+
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
                 name='documentType'
@@ -254,9 +245,6 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.documentType && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.documentType.message}</FormHelperText>
-              )}
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -274,9 +262,6 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.stateDocument && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.stateDocument.message}</FormHelperText>
-              )}
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -294,9 +279,6 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.nivelAcces && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.nivelAcces.message}</FormHelperText>
-              )}
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
@@ -314,29 +296,14 @@ const SidebarEditUser = (props: { docId: string }) => {
                   />
                 )}
               />
-              {errors.description && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
-              )}
             </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='category'
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Categoria'
-                    onChange={handleChange}
-                    value={doc.category}
-                    error={Boolean(errors.category)}
-                    autoComplete='off'
-                  />
-                )}
-              />
-              {errors.category && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.category.message}</FormHelperText>
-              )}
+
+            <FormControl fullWidth sx={{ mb: 6 }}>
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                <Button variant='outlined'>Seleccionar archivo</Button>
+              </div>
+              {file && <p>{file.name}</p>}
             </FormControl>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

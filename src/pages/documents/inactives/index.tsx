@@ -78,10 +78,7 @@ const AssetList: React.FC = () => {
   const [assets, setAssets] = useState<Docu[]>([])
   const [editedAsset, setEditedAsset] = useState<Docu | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
-
-  useEffect(() => {
-    fetchData()
-  }, [])
+  const [switchValue, setSwitchValue] = useState(false)
 
   const fetchData = () => {
     axios
@@ -94,6 +91,10 @@ const AssetList: React.FC = () => {
         console.error(error)
       })
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   /*const handleDelete = (_id: string) => {
   axios
@@ -126,80 +127,6 @@ const AssetList: React.FC = () => {
   }))
 
   // ** renders client column
-
-  const RowOptions = ({ id }: { id: number | string }) => {
-    // ** Hooks
-    const dispatch = useDispatch<AppDispatch>()
-
-    // ** State
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-    const rowOptionsOpen = Boolean(anchorEl)
-
-    const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
-      setAnchorEl(event.currentTarget)
-    }
-    const handleRowOptionsClose = () => {
-      setAnchorEl(null)
-    }
-
-    /*const handleDelete = (_id: string) => {
-  axios
-    .delete(`${process.env.NEXT_PUBLIC_DOCUMENTAL + _id}/inactive`)
-    .then(response => {
-      console.log('se elimino con exito' + response.data)
-
-    })
-    .catch(error => {
-      console.error(error)
-    })
-}*/
-
-    const handleDelete = () => {
-      dispatch(deleteUser(id))
-      handleRowOptionsClose()
-    }
-    const handleView = () => {
-      console.log(id)
-      handleRowOptionsClose()
-    }
-
-    return (
-      <>
-        <IconButton size='small' onClick={handleRowOptionsClick}>
-          <Icon icon='mdi:dots-vertical' />
-        </IconButton>
-        <Menu
-          keepMounted
-          anchorEl={anchorEl}
-          open={rowOptionsOpen}
-          onClose={handleRowOptionsClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right'
-          }}
-          PaperProps={{ style: { minWidth: '8rem' } }}
-        >
-          <MenuItem component={Link} sx={{ '& svg': { mr: 2 } }} onClick={handleView} href='/listDoc'>
-            <Icon icon='mdi:eye-outline' fontSize={20} />
-            View
-          </MenuItem>
-          <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-            <Icon icon='mdi:pencil-outline' fontSize={20} />
-            Edit
-          </MenuItem>
-          <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
-            <Icon icon='mdi:delete-outline' fontSize={20} />
-            Delete
-          </MenuItem>
-        </Menu>
-      </>
-    )
-  }
 
   const columns = [
     {
@@ -282,10 +209,11 @@ const AssetList: React.FC = () => {
       sortable: false,
       field: 'actions',
       headerName: 'Actions',
-      renderCell: ({ row }: CellType) => 
-      <Grid item xs={12}>
-        <Switch defaultChecked />
-      </Grid>
+      renderCell: ({ row }: CellType) => (
+        <Grid item xs={12}>
+          <Switch checked={switchValue} />
+        </Grid>
+      )
     }
   ]
 
@@ -324,7 +252,6 @@ const AssetList: React.FC = () => {
           />
         </Card>
       </Grid>
-      
 
       <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
     </Grid>

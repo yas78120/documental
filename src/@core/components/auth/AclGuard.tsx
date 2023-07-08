@@ -42,7 +42,7 @@ const AclGuard = (props: AclGuardProps) => {
   }
 
   // User is logged in, build ability for the user based on his role
-  console.log(auth)
+  //console.log(auth)
   if (auth.user && auth.user.usepage && !ability) {
     setAbility(buildAbilityFor(auth.user.usepage, aclAbilities.subject))
   }

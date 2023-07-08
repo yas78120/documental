@@ -26,7 +26,7 @@ export const Login = async (data: ParsedUrlQuery) => {
 
 export async function Redirect(id: string, token: string) {
   if (id != undefined && token != undefined) {
-    console.log('data: ' + id + ' ' + token)
+    //console.log('data: ' + id + ' ' + token)
     const router = useRouter()
     const app = id
     // console.log(app)
@@ -35,19 +35,24 @@ export async function Redirect(id: string, token: string) {
 
     if (app && token) {
       try {
-        const res = await axios.post('http://10.10.214.219:3300/api/central/login-central', { app, token })
+        const res = await axios.post('http://10.10.214.219:8085/api/login-central', { app, token })
         localStorage.setItem('token', res.data)
 
+        //router.replace('http://10.10.214.219:3060/home')
+        router.replace('http://localhost:3300/home')
+        //delete router.query.id
+        //delete router.query.token
         if (res.status === 401 || res.status == 404) {
           // console.log('errorrrrrrrrrrrr')
-          router.replace('http://10.10.214.223:3000/home')
+          router.replace('http://10.10.214.219:3005/login')
         }
-      } catch (error) {
-        router.push('http://10.10.214.223:3000/home')
+      } catch (error: any) {
+        alert(error.response.data.message)
+        router.push('http://10.10.214.219:3005/login')
       }
     } else {
       // console.log('no existe tokennnnnnnnnnn')
-      router.replace('http://10.10.214.223:3000/home')
+      router.replace('http://10.10.214.219:3005/login')
     }
   }
 }

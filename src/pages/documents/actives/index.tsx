@@ -38,7 +38,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Actions Imports
 //import { deleteDoc } from 'src/store/apps/user'
-import { deleteUser, fetchData } from 'src/store/apps/user'
+import User, { deleteUser, fetchData } from 'src/store/apps/user'
 
 // ** Third Party Components
 import axios from 'axios'
@@ -54,6 +54,7 @@ import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/t
 import TableHeader from 'src/pages/Peticiones/TableHeader'
 import AddUserDrawer from 'src/pages/Peticiones/AddUserDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
+import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
 
 interface UserRoleType {
   [key: string]: { icon: string; color: string }
@@ -62,13 +63,31 @@ interface Docu {
   _id: string
   numberDocument: string
   title: string
-  authorDocument: string
-  digitalUbication: string
-  documentType: string
-  stateDocument: string
-  nivelAcces: string
+  authorDocument: {
+    name: string
+    ci: string
+    email: string
+    phone: string
+    nationality: string
+  }
+  documentationType: {
+    typeName: string
+  }
+  documentDestinations: {
+    nameOrganigrama: string
+  }[]
   description: string
-  expirationDate: string
+  fileRegistrer: {
+    _id: string
+    filename: string
+    size: number
+    filePath: string
+    status: string
+    category: string
+    extension: string
+  }
+
+  stateDocument: string
   active: Boolean
 }
 interface Redux {
@@ -125,17 +144,19 @@ const StyledLink = styled(Link)(({ theme }) => ({
 
 // ** renders client column
 
-const RowOptions = ({ id }: { id: number | string }) => {
+const RowOptions = ({ id }: { id: string }) => {
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
 
   // ** State
+  const [selectedId, setSelectedId] = useState<string>('')
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const rowOptionsOpen = Boolean(anchorEl)
 
   const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
+    setSelectedId(id)
   }
   const handleRowOptionsClose = () => {
     setAnchorEl(null)
@@ -155,10 +176,6 @@ const RowOptions = ({ id }: { id: number | string }) => {
 
   const handleDelete = () => {
     dispatch(deleteUser(id))
-    handleRowOptionsClose()
-  }
-  const handleView = () => {
-    console.log(id)
     handleRowOptionsClose()
   }
 
@@ -182,13 +199,11 @@ const RowOptions = ({ id }: { id: number | string }) => {
         }}
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
-        <MenuItem component={Link} sx={{ '& svg': { mr: 2 } }} onClick={handleView} href='/listDoc'>
-          <Icon icon='mdi:eye-outline' fontSize={20} />
-          View
+        <MenuItem sx={{ '& svg': { mr: 2 } }} onClick={handleRowOptionsClose}>
+          <DocViewLeft docId={selectedId} />
         </MenuItem>
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='mdi:pencil-outline' fontSize={20} />
-          Edit
+          <EditDocDrawer docId={selectedId} />
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
@@ -201,8 +216,8 @@ const RowOptions = ({ id }: { id: number | string }) => {
 
 const columns = [
   {
-    flex: 0.08,
-    minWidth: 100,
+    flex: 0.1,
+    minWidth: 120,
     field: 'numberDocument',
     headerName: 'DOCUMENTO',
     renderCell: ({ row }: CellType) => {
@@ -211,7 +226,9 @@ const columns = [
       return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink href='/apps/user/view/overview/'>{numberDocument}</StyledLink>
+            <Typography variant='subtitle1' noWrap sx={{ textTransform: 'capitalize' }}>
+              {numberDocument}
+            </Typography>
             <Typography noWrap variant='caption'></Typography>
           </Box>
         </Box>
@@ -219,20 +236,20 @@ const columns = [
     }
   },
   {
-    flex: 0.08,
+    flex: 0.2,
     minWidth: 120,
     field: 'authorDocument',
     headerName: 'Autor',
     renderCell: ({ row }: CellType) => {
       return (
-        <Typography noWrap variant='body2'>
-          {row.authorDocument}
+        <Typography variant='subtitle2' noWrap sx={{ textTransform: 'capitalize' }}>
+          {row.authorDocument.name}
         </Typography>
       )
     }
   },
   {
-    flex: 0.08,
+    flex: 0.2,
     field: 'title',
     minWidth: 120,
     headerName: 'Titulo',
@@ -245,22 +262,49 @@ const columns = [
     }
   },
   {
-    flex: 0.1,
-    minWidth: 200,
+    flex: 0.2,
+    minWidth: 210,
     headerName: 'Descripcion',
-    field: 'currentPlan',
+    field: 'description',
     renderCell: ({ row }: CellType) => {
       return (
-        <Typography variant='subtitle1' noWrap sx={{ textTransform: 'capitalize' }}>
+        <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
           {row.description}
         </Typography>
       )
     }
   },
+
   {
-    flex: 0.09,
-    minWidth: 110,
-    field: 'status',
+    flex: 0.2,
+    minWidth: 130,
+    headerName: 'Referencia',
+    field: 'documentType',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          {row.documentationType.typeName}
+        </Typography>
+      )
+    }
+  },
+  {
+    flex: 0.2,
+    minWidth: 130,
+    headerName: 'Destino',
+    field: 'documentDestinations',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          {row.documentDestinations[0].nameOrganigrama}
+        </Typography>
+      )
+    }
+  },
+  {
+    flex: 0.15,
+    minWidth: 120,
+    field: 'stateDocument ',
     headerName: 'Estado',
     renderCell: ({ row }: CellType) => {
       return (
@@ -273,23 +317,10 @@ const columns = [
       )
     }
   },
+
   {
-    flex: 0.06,
-    minWidth: 80,
-    field: 'edit',
-    headerName: 'EDITAR',
-    renderCell: ({ row }: CellType) => {
-      //console.log(row._id)
-      return (
-        <>
-          <EditDocDrawer docId={row._id} />
-        </>
-      )
-    }
-  },
-  {
-    flex: 0.1,
-    minWidth: 90,
+    flex: 0.15,
+    minWidth: 100,
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
@@ -321,7 +352,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   }, [dispatch, plan, role, status, value])
 
   const store = useSelector((state: RootState) => state.user)
-  //console.log(store)
+  console.log(store)
   //console.log(apiData)
 
   const handleFilter = useCallback((val: string) => {

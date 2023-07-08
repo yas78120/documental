@@ -14,6 +14,10 @@ const Home = () => {
   const router = useRouter()
   //const { id, token } = router.query
   //console.log(id, token)
+
+  //const tokenn = localStorage.getItem('token')
+  //if(!tokenn){router.push('10.10.214.219:3005/login')}
+
   const id = router.query.id
   const token = router.query.token
   //const id = '638f4aed-5a41-4a9a-9d1a-0f3e3f1e66dd'

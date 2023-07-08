@@ -1,9 +1,9 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Button from '@mui/material/Button'
 import MenuItem from '@mui/material/MenuItem'
 import { styled } from '@mui/material/styles'
@@ -14,6 +14,8 @@ import Typography from '@mui/material/Typography'
 import Box, { BoxProps } from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
+import Input from '@mui/material/Input'
+import { useDropzone } from 'react-dropzone'
 
 // ** Third Party Imports
 import * as yup from 'yup'
@@ -32,6 +34,8 @@ import { addUser } from 'src/store/apps/user'
 // ** Types Imports
 import { AppDispatch } from 'src/store'
 import axios from 'axios'
+import React from 'react'
+import { Chip } from '@mui/material'
 
 interface SidebarAddUserType {
   open: boolean
@@ -40,13 +44,21 @@ interface SidebarAddUserType {
 
 interface docData {
   title: string
-  authorDocument: string
-  digitalUbication: string
+  idPersonal: string
   documentType: string
   stateDocument: string
-  nivelAcces: string
+  documentDestinations: string
   description: string
-  category: string
+  file: string
+}
+
+interface departDestino {
+  _id: string
+  name: string
+}
+interface docType {
+  _id: string
+  typeName: string
 }
 
 const showErrors = (field: string, valueLen: number, min: number) => {
@@ -69,24 +81,22 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  authorDocument: yup.string().required(),
-  digitalUbication: yup.string().required(),
+  idPersonal: yup.string().required(),
   documentType: yup.string().required(),
   stateDocument: yup.string().required(),
-  nivelAcces: yup.string().required(),
+  documentDestinations: yup.string().required(),
   description: yup.string().required(),
-  category: yup.string().required()
+  file: yup.mixed().required('Documento es requerido')
 })
 
 const defaultValues = {
   title: '',
-  authorDocument: '',
-  digitalUbication: '',
+  idPersonal: '',
   documentType: '',
   stateDocument: '',
-  nivelAcces: '',
+  documentDestinations: '',
   description: '',
-  category: ''
+  file: ''
 }
 
 const SidebarAddUser = (props: SidebarAddUserType) => {
@@ -99,11 +109,11 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const [role, setRole] = useState<string>('subscriber')
   const [asset, setAsset] = useState({
     title: '',
-    authorDocument: '',
+    idPersonal: '',
     digitalUbication: '',
     documentType: '',
     stateDocument: '',
-    nivelAcces: '',
+    documentDestinations: '',
     description: ''
   })*/
   // ** Hooks
@@ -119,6 +129,40 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
+  const [groupDepart, setgroupDepart] = React.useState<departDestino[]>([])
+  const [groupTypes, setgroupTypes] = React.useState<docType[]>([])
+
+  const getDestino = async () => {
+    try {
+      const response = await axios.get<departDestino[]>(`http://10.10.214.219:8085/organization-chart`)
+      console.log(response.data)
+      setgroupDepart(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  const getTypeDoc = async () => {
+    try {
+      const response = await axios.get<docType[]>(`http://10.10.214.219:8085/documentation-type`)
+      console.log(response.data)
+      setgroupTypes(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    getDestino()
+    getTypeDoc()
+  }, [])
+
+  const [selectedValues, setSelectedValues] = useState<string[]>([])
+
+  const handleSelectChange = (event: SelectChangeEvent<string | string[]>) => {
+    const selectedValues = Array.isArray(event.target.value) ? event.target.value : [event.target.value]
+
+    setSelectedValues(selectedValues)
+  }
 
   /*
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,9 +187,27 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     reset()
   }*/
 
-  const onSubmit = (data: docData) => {
-    //console.log(data)
+  const convertFileToBase64 = (file: File) =>
+    new Promise<string | ArrayBuffer | null>((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        resolve(reader.result)
+      }
+
+      reader.onerror = reject
+
+      reader.readAsDataURL(file)
+    })
+
+  const onSubmit = async (data: docData) => {
+    if (file) {
+      const base64File = await convertFileToBase64(file)
+      data.file = base64File as string
+    }
+
     dispatch(addUser({ ...data }))
+    console.log(data)
 
     toggle()
     reset()
@@ -155,6 +217,16 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     toggle()
     reset()
   }
+
+  const [file, setFile] = useState<File | null>(null)
+  const onDrop = (acceptedFiles: File[]) => {
+    setFile(acceptedFiles[0])
+    console.log(setFile)
+  }
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop })
+
+  const [selectedDocumentTypes, setSelectedDocumentTypes] = useState<string[]>([])
 
   return (
     <Drawer
@@ -185,6 +257,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Tarea 1'
                   error={Boolean(errors.title)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -192,7 +265,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='authorDocument'
+              name='idPersonal'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -201,31 +274,13 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   onChange={onChange}
                   placeholder='Oliver'
-                  error={Boolean(errors.authorDocument)}
+                  error={Boolean(errors.idPersonal)}
+                  autoComplete='off'
                 />
               )}
             />
-            {errors.authorDocument && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.authorDocument.message}</FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='digitalUbication'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Ubicacion de archivo'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='/archivos/documento09.pdf'
-                  error={Boolean(errors.digitalUbication)}
-                />
-              )}
-            />
-            {errors.digitalUbication && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.digitalUbication.message}</FormHelperText>
+            {errors.idPersonal && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.idPersonal.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -233,14 +288,31 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               name='documentType'
               control={control}
               rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Extension'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Word'
+              render={({ field: { onChange } }) => (
+                <Select
+                  multiple
+                  value={selectedDocumentTypes}
+                  onChange={e => {
+                    const selectedValues = e.target.value as string[]
+                    setSelectedDocumentTypes(selectedValues)
+                    onChange(selectedValues)
+                  }}
+                  renderValue={selected => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                      {(selected as string[]).map(value => (
+                        <Chip key={value} label={value} sx={{ m: 0.5 }} />
+                      ))}
+                    </Box>
+                  )}
+                  placeholder='Seleccionar extensiones'
                   error={Boolean(errors.documentType)}
-                />
+                >
+                  {groupTypes.map(type => (
+                    <MenuItem key={type._id} value={type.typeName}>
+                      {type.typeName}
+                    </MenuItem>
+                  ))}
+                </Select>
               )}
             />
             {errors.documentType && (
@@ -259,6 +331,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Aprobado'
                   error={Boolean(errors.stateDocument)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -268,21 +341,28 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='nivelAcces'
+              name='documentDestinations'
               control={control}
               rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Acceso'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Restringido'
-                  error={Boolean(errors.nivelAcces)}
-                />
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  multiple
+                  value={selectedValues}
+                  onChange={handleSelectChange}
+                  error={Boolean(errors.documentDestinations)}
+                  autoComplete='off'
+                >
+                  {groupDepart.map(option => (
+                    <MenuItem key={option._id} value={option._id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
               )}
             />
-            {errors.nivelAcces && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.nivelAcces.message}</FormHelperText>
+            {errors.documentDestinations && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentDestinations.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -297,6 +377,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Esta en mi tarea ...'
                   error={Boolean(errors.description)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -304,23 +385,12 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
             )}
           </FormControl>
-
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='category'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Category'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Informes'
-                  error={Boolean(errors.category)}
-                />
-              )}
-            />
-            {errors.category && <FormHelperText sx={{ color: 'error.main' }}>{errors.category.message}</FormHelperText>}
+            <div {...getRootProps()}>
+              <input {...getInputProps()} />
+              <Button variant='outlined'>Seleccionar archivo</Button>
+            </div>
+            {file && <p>{file.name}</p>}
           </FormControl>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
