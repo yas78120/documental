@@ -38,8 +38,8 @@ export async function Redirect(id: string, token: string) {
         const res = await axios.post('http://10.10.214.219:8085/api/login-central', { app, token })
         localStorage.setItem('token', res.data)
 
-        //router.replace('http://10.10.214.219:3060/home')
-        router.replace('http://localhost:3300/home')
+        router.replace('http://10.10.214.219:3060/home')
+        //router.replace('http://localhost:3300/home')
         //delete router.query.id
         //delete router.query.token
         if (res.status === 401 || res.status == 404) {

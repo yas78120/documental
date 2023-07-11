@@ -64,13 +64,30 @@ interface Docu {
   _id: string
   numberDocument: string
   title: string
-  authorDocument: string
-  digitalUbication: string
-  documentType: string
-  stateDocument: string
-  nivelAcces: string
+  authorDocument: {
+    name: string
+    ci: string
+    email: string
+    phone: string
+    nationality: string
+  }
+  documentationType: {
+    typeName: string
+  }
+  documentDestinations: {
+    name: string
+  }[]
   description: string
-  expirationDate: string
+  fileRegistrer: {
+    _id: string
+    filename: string
+    size: number
+    filePath: string
+    status: string
+    category: string
+    extension: string
+  }
+  stateDocument: string
   active: Boolean
 }
 
@@ -125,6 +142,33 @@ const AssetList: React.FC = () => {
       color: theme.palette.primary.main
     }
   }))
+  const handleSwitchToggle = (id: string) => {
+    const updatedAssets = assets.map(asset => {
+      if (asset._id === id) {
+        return { ...asset, active: !asset.active }
+      }
+      return asset
+    })
+    setAssets(updatedAssets)
+  }
+
+  const RowOptions = ({ id, onSwitchToggle }: { id: string; onSwitchToggle: (id: string) => void }) => {
+    const handleSwitchToggle2 = () => {
+      onSwitchToggle(id)
+      console.log(id)
+      const response = axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${id}/active`)
+      console.log(response + 'se agrego con exito')
+      fetchData()
+    }
+    const asset = assets.find(asset => asset._id === id)
+    const switchValue = asset?.active || false
+
+    return (
+      <div>
+        <Switch checked={!!switchValue} onChange={handleSwitchToggle2} />
+      </div>
+    )
+  }
 
   // ** renders client column
 
@@ -155,7 +199,7 @@ const AssetList: React.FC = () => {
       renderCell: ({ row }: CellType) => {
         return (
           <Typography noWrap variant='body2'>
-            {row.authorDocument}
+            {row.authorDocument.name}
           </Typography>
         )
       }
@@ -209,11 +253,7 @@ const AssetList: React.FC = () => {
       sortable: false,
       field: 'actions',
       headerName: 'Actions',
-      renderCell: ({ row }: CellType) => (
-        <Grid item xs={12}>
-          <Switch checked={switchValue} />
-        </Grid>
-      )
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} onSwitchToggle={handleSwitchToggle} />
     }
   ]
 

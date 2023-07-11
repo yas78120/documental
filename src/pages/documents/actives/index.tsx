@@ -74,7 +74,7 @@ interface Docu {
     typeName: string
   }
   documentDestinations: {
-    nameOrganigrama: string
+    name: string
   }[]
   description: string
   fileRegistrer: {
@@ -123,12 +123,18 @@ interface Redux {
     })
 }
 */
-interface UserStatusType {
+interface DocStatusType {
   [key: string]: ThemeColor
 }
 
 interface CellType {
   row: Docu
+}
+
+const docStatusObj: DocStatusType = {
+  enviado: 'success',
+  recibido: 'warning',
+  leido: 'primary'
 }
 
 const StyledLink = styled(Link)(({ theme }) => ({
@@ -296,7 +302,7 @@ const columns = [
     renderCell: ({ row }: CellType) => {
       return (
         <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-          {row.documentDestinations[0].nameOrganigrama}
+          {row.documentDestinations[0].name}
         </Typography>
       )
     }
@@ -312,6 +318,7 @@ const columns = [
           skin='light'
           size='small'
           label={row.stateDocument}
+          color={docStatusObj[row.stateDocument]}
           sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
         />
       )

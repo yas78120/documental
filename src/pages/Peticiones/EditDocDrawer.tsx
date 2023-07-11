@@ -40,10 +40,10 @@ import { useDropzone } from 'react-dropzone'
 interface docData {
   numberDocument: string
   title: string
-  authorDocument: string
+  ciPersonal: string
   documentType: string
   stateDocument: string
-  nivelAcces: string
+  documentDestinations: string
   description: string
   file: string
 }
@@ -58,11 +58,11 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  authorDocument: yup.string().required(),
+  ciPersonal: yup.string().required(),
   digitalUbication: yup.string().required(),
   documentType: yup.string().required(),
   stateDocument: yup.string().required(),
-  nivelAcces: yup.string().required(),
+  documentDestinations: yup.string().required(),
   description: yup.string().required(),
   file: yup.string().required()
 })
@@ -76,10 +76,10 @@ const SidebarEditUser = (props: { docId: string }) => {
   const [doc, setDoc] = useState<docData>({
     numberDocument: '',
     title: '',
-    authorDocument: '',
+    ciPersonal: '',
     documentType: '',
     stateDocument: '',
-    nivelAcces: '',
+    documentDestinations: '',
     description: '',
     file: ''
   })
@@ -213,7 +213,7 @@ const SidebarEditUser = (props: { docId: string }) => {
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
-                name='authorDocument'
+                name='ciPersonal'
                 control={control}
                 rules={{ required: false }}
                 render={({ field }) => (
@@ -221,8 +221,8 @@ const SidebarEditUser = (props: { docId: string }) => {
                     {...field}
                     label='Author'
                     onChange={handleChange}
-                    value={doc.authorDocument}
-                    error={Boolean(errors.authorDocument)}
+                    value={doc.ciPersonal}
+                    error={Boolean(errors.ciPersonal)}
                     autoComplete='off'
                   />
                 )}
@@ -265,7 +265,7 @@ const SidebarEditUser = (props: { docId: string }) => {
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
-                name='nivelAcces'
+                name='documentDestinations'
                 control={control}
                 rules={{ required: false }}
                 render={({ field }) => (
@@ -273,8 +273,8 @@ const SidebarEditUser = (props: { docId: string }) => {
                     {...field}
                     label='Nivel de acceso'
                     onChange={handleChange}
-                    value={doc.nivelAcces}
-                    error={Boolean(errors.nivelAcces)}
+                    value={doc.documentDestinations}
+                    error={Boolean(errors.documentDestinations)}
                     autoComplete='off'
                   />
                 )}

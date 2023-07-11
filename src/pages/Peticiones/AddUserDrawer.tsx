@@ -44,7 +44,7 @@ interface SidebarAddUserType {
 
 interface docData {
   title: string
-  idPersonal: string
+  ciPersonal: string
   documentType: string
   stateDocument: string
   documentDestinations: string
@@ -81,7 +81,7 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  idPersonal: yup.string().required(),
+  ciPersonal: yup.string().required(),
   documentType: yup.string().required(),
   stateDocument: yup.string().required(),
   documentDestinations: yup.string().required(),
@@ -91,7 +91,7 @@ const schema = yup.object().shape({
 
 const defaultValues = {
   title: '',
-  idPersonal: '',
+  ciPersonal: '',
   documentType: '',
   stateDocument: '',
   documentDestinations: '',
@@ -109,7 +109,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const [role, setRole] = useState<string>('subscriber')
   const [asset, setAsset] = useState({
     title: '',
-    idPersonal: '',
+    ciPersonal: '',
     digitalUbication: '',
     documentType: '',
     stateDocument: '',
@@ -155,15 +155,17 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     getDestino()
     getTypeDoc()
   }, [])
-
+  /*
   const [selectedValues, setSelectedValues] = useState<string[]>([])
 
   const handleSelectChange = (event: SelectChangeEvent<string | string[]>) => {
     const selectedValues = Array.isArray(event.target.value) ? event.target.value : [event.target.value]
 
     setSelectedValues(selectedValues)
-  }
+  }*/
 
+  const [selectedValues, setSelectedValues] = useState<string[]>([])
+  const [selectedValues2, setSelectedValues2] = useState<string[]>([])
   /*
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAsset({ ...asset, [e.target.name]: e.target.value })
@@ -225,8 +227,8 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   }
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop })
-
-  const [selectedDocumentTypes, setSelectedDocumentTypes] = useState<string[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen2, setIsOpen2] = useState(false)
 
   return (
     <Drawer
@@ -265,7 +267,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
-              name='idPersonal'
+              name='ciPersonal'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -274,16 +276,17 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   onChange={onChange}
                   placeholder='Oliver'
-                  error={Boolean(errors.idPersonal)}
+                  error={Boolean(errors.ciPersonal)}
                   autoComplete='off'
                 />
               )}
             />
-            {errors.idPersonal && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.idPersonal.message}</FormHelperText>
+            {errors.ciPersonal && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.ciPersonal.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
+            Tipo de Documento
             <Controller
               name='documentType'
               control={control}
@@ -291,25 +294,23 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               render={({ field: { onChange } }) => (
                 <Select
                   multiple
-                  value={selectedDocumentTypes}
-                  onChange={e => {
-                    const selectedValues = e.target.value as string[]
-                    setSelectedDocumentTypes(selectedValues)
-                    onChange(selectedValues)
+                  value={selectedValues2}
+                  onChange={event => {
+                    const selectedValues = event.target.value as string[]
+                    const selectedValuesAsString = selectedValues.join(',')
+                    setSelectedValues2(selectedValues)
+                    onChange(selectedValuesAsString)
+                    setIsOpen2(false)
                   }}
-                  renderValue={selected => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                      {(selected as string[]).map(value => (
-                        <Chip key={value} label={value} sx={{ m: 0.5 }} />
-                      ))}
-                    </Box>
-                  )}
-                  placeholder='Seleccionar extensiones'
-                  error={Boolean(errors.documentType)}
+                  open={isOpen2}
+                  onClose={() => setIsOpen2(false)}
+                  error={Boolean(errors.documentDestinations)}
+                  autoComplete='off'
+                  onOpen={() => setIsOpen2(true)}
                 >
-                  {groupTypes.map(type => (
-                    <MenuItem key={type._id} value={type.typeName}>
-                      {type.typeName}
+                  {groupTypes.map(option => (
+                    <MenuItem key={option._id} value={option.typeName}>
+                      {option.typeName}
                     </MenuItem>
                   ))}
                 </Select>
@@ -340,21 +341,30 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
+            Destino
             <Controller
               name='documentDestinations'
               control={control}
               rules={{ required: true }}
-              render={({ field }) => (
+              render={({ field: { onChange } }) => (
                 <Select
-                  {...field}
                   multiple
                   value={selectedValues}
-                  onChange={handleSelectChange}
+                  onChange={event => {
+                    const selectedValues = event.target.value as string[]
+                    const selectedValuesAsString = selectedValues.join(',')
+                    setSelectedValues(selectedValues)
+                    onChange(selectedValuesAsString)
+                    setIsOpen(false) // Cerrar el Select después de la selección
+                  }}
+                  open={isOpen}
+                  onClose={() => setIsOpen(false)}
                   error={Boolean(errors.documentDestinations)}
                   autoComplete='off'
+                  onOpen={() => setIsOpen(true)}
                 >
                   {groupDepart.map(option => (
-                    <MenuItem key={option._id} value={option._id}>
+                    <MenuItem key={option._id} value={option.name}>
                       {option.name}
                     </MenuItem>
                   ))}

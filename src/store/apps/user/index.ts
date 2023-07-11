@@ -41,14 +41,13 @@ export const addUser = createAsyncThunk(
   }
 )
 
-
 // ** Delete User
 export const deleteUser = createAsyncThunk(
   'appUsers/deleteUser',
   (id: number | string, { getState, dispatch }: Redux) => {
     //console.log(id)
     const response = axios.delete(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${id}/inactive`)
-
+    console.log(id + 'se elimino con exito')
     dispatch(fetchData(getState().user.params))
 
     return response
