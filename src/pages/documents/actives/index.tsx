@@ -55,6 +55,7 @@ import TableHeader from 'src/pages/Peticiones/TableHeader'
 import AddUserDrawer from 'src/pages/Peticiones/AddUserDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 
 interface UserRoleType {
   [key: string]: { icon: string; color: string }
@@ -157,6 +158,7 @@ const RowOptions = ({ id }: { id: string }) => {
   // ** State
   const [selectedId, setSelectedId] = useState<string>('')
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
 
   const rowOptionsOpen = Boolean(anchorEl)
 
@@ -168,6 +170,13 @@ const RowOptions = ({ id }: { id: string }) => {
     setAnchorEl(null)
   }
 
+  const handleDeleteConfirmation = () => {
+    setShowConfirmation(true)
+  }
+
+  const handleDeleteCancel = () => {
+    setShowConfirmation(false)
+  }
   /*const handleDelete = (_id: string) => {
   axios
     .delete(`${process.env.NEXT_PUBLIC_DOCUMENTAL + _id}/inactive`)
@@ -211,11 +220,23 @@ const RowOptions = ({ id }: { id: string }) => {
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
           <EditDocDrawer docId={selectedId} />
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
+        <MenuItem onClick={handleDeleteConfirmation} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
-          Delete
+          Eliminar
         </MenuItem>
       </Menu>
+      {showConfirmation && (
+        <Dialog open={showConfirmation} onClose={handleDeleteCancel}>
+          <DialogTitle>Esta seguro de eliminar el archivo?</DialogTitle>
+
+          <DialogActions>
+            <Button onClick={handleDeleteCancel}>Cancelar</Button>
+            <Button onClick={handleDelete} autoFocus>
+              Eliminar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   )
 }
@@ -367,7 +388,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   }, [])
 
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-
+  
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>

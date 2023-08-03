@@ -40,7 +40,9 @@ import { useDropzone } from 'react-dropzone'
 interface docData {
   numberDocument: string
   title: string
-  ciPersonal: string
+  authorDocument: {
+    name: string
+  }
   documentType: string
   stateDocument: string
   documentDestinations: string
@@ -58,7 +60,7 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  ciPersonal: yup.string().required(),
+  authorDocument: yup.string().required(),
   digitalUbication: yup.string().required(),
   documentType: yup.string().required(),
   stateDocument: yup.string().required(),
@@ -76,7 +78,9 @@ const SidebarEditUser = (props: { docId: string }) => {
   const [doc, setDoc] = useState<docData>({
     numberDocument: '',
     title: '',
-    ciPersonal: '',
+    authorDocument: {
+      name: ''
+    },
     documentType: '',
     stateDocument: '',
     documentDestinations: '',
@@ -213,7 +217,7 @@ const SidebarEditUser = (props: { docId: string }) => {
             </FormControl>
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
-                name='ciPersonal'
+                name='authorDocument'
                 control={control}
                 rules={{ required: false }}
                 render={({ field }) => (
@@ -221,8 +225,8 @@ const SidebarEditUser = (props: { docId: string }) => {
                     {...field}
                     label='Author'
                     onChange={handleChange}
-                    value={doc.ciPersonal}
-                    error={Boolean(errors.ciPersonal)}
+                    value={doc.authorDocument.name}
+                    error={Boolean(errors.authorDocument)}
                     autoComplete='off'
                   />
                 )}
@@ -237,7 +241,7 @@ const SidebarEditUser = (props: { docId: string }) => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label='Extension'
+                    label='Tipo de documento'
                     value={doc.documentType}
                     onChange={handleChange}
                     error={Boolean(errors.documentType)}
@@ -271,7 +275,7 @@ const SidebarEditUser = (props: { docId: string }) => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label='Nivel de acceso'
+                    label='Destino'
                     onChange={handleChange}
                     value={doc.documentDestinations}
                     error={Boolean(errors.documentDestinations)}

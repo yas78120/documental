@@ -50,6 +50,7 @@ import { RootState, AppDispatch } from 'src/store'
 import { CardStatsType } from 'src/@fake-db/types'
 import { ThemeColor } from 'src/@core/layouts/types'
 import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/types'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 
 // ** Custom Table Components Imports
 
@@ -153,19 +154,45 @@ const AssetList: React.FC = () => {
   }
 
   const RowOptions = ({ id, onSwitchToggle }: { id: string; onSwitchToggle: (id: string) => void }) => {
-    const handleSwitchToggle2 = () => {
+    const dispatch = useDispatch()
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [switchValue, setSwitchValue] = useState(false)
+
+    const handleSwitchToggle = () => {
+      setDialogOpen(true)
+    }
+
+    const handleDialogConfirm = async () => {
+      setDialogOpen(false)
       onSwitchToggle(id)
-      console.log(id)
-      const response = axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${id}/active`)
+
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${id}/active`)
       console.log(response + 'se agrego con exito')
       fetchData()
     }
-    const asset = assets.find(asset => asset._id === id)
-    const switchValue = asset?.active || false
+
+    const handleDialogCancel = () => {
+      setDialogOpen(false)
+      // Revert switch state if necessary
+      setSwitchValue(false)
+    }
 
     return (
       <div>
-        <Switch checked={!!switchValue} onChange={handleSwitchToggle2} />
+        <FormControlLabel control={<Switch checked={switchValue} onChange={handleSwitchToggle} />} label='Activar' />
+
+        <Dialog open={dialogOpen} onClose={handleDialogCancel}>
+          <DialogTitle>Confirmacion</DialogTitle>
+          <DialogContent>
+            <Typography>Estas seguro de activar el documento?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDialogCancel}>Cancelar</Button>
+            <Button onClick={handleDialogConfirm} variant='contained' color='primary'>
+              Confirmar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     )
   }
