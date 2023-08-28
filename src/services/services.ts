@@ -35,25 +35,30 @@ export async function Redirect(id: string, token: string) {
 
     if (app && token) {
       try {
-        const res = await axios.post('http://10.10.214.167:8085/api/login-central', { app, token })
+        const res = await axios.post('http://10.10.214.237:3501/api/login-central', { app, token })
         //const res = await axios.post('http://10.10.214.219:8085/api/login-central', { app, token })
         localStorage.setItem('token', res.data)
 
-        router.replace('http://10.10.214.219:3060/home')
+        //router.replace('http://10.10.214.219:3060/home')
+        router.replace('http://10.10.214.167:3300/home')
         //router.replace('http://localhost:3300/home')
         //delete router.query.id
         //delete router.query.token
         if (res.status === 401 || res.status == 404) {
-          // console.log('errorrrrrrrrrrrr')
-          router.replace('http://10.10.214.219:3005/login')
+          console.log('errorrrrrrrrrrrr')
+          router.replace('http://10.10.214.223:3000/login')
+          //router.replace('http://10.10.214.219:3005/login')
         }
       } catch (error: any) {
+        console.log(error)
         alert(error.response.data.message)
-        router.push('http://10.10.214.219:3005/login')
+        router.push('http://10.10.214.223:3000/login')
+        //router.push('http://10.10.214.219:3005/login')
       }
     } else {
       // console.log('no existe tokennnnnnnnnnn')
-      router.replace('http://10.10.214.219:3005/login')
+      router.replace('http://10.10.214.223:3000/login')
+      //router.replace('http://10.10.214.219:3005/login')
     }
   }
 }

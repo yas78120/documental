@@ -27,21 +27,13 @@ interface Docu {
   title: string
   fileRegister: {
     _idFile: string
-    filename: string
-    size: number
-    filePath: string
-    status: string
-    category: string
     extension: string
   }
+  fileBase64: string
   documentationType: {
-    _id: string
     typeName: string
   }
-  stateDocument: string
   description: string
-
-  active: Boolean
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
@@ -93,16 +85,30 @@ const DocViewLeft = (props: { docId: string }) => {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false)
   const [state, setState] = useState<boolean>(false)
 
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const response = await axios.get<Docu>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
-        setDoc(response.data)
-      } catch (error) {
-        console.error(error)
+  const getData = async () => {
+    try {
+      const response = await axios.get<Docu>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
+      console.log(response.data)
+      // Extraer los campos necesarios de la respuesta
+      const { _id, numberDocument, title, fileRegister, fileBase64, documentationType, description } = response.data
+      // Crear un nuevo objeto con los campos extraídos
+      const extractedDoc: Docu = {
+        _id,
+        numberDocument,
+        fileBase64,
+        title,
+        fileRegister,
+        documentationType,
+        description
       }
+      setDoc(extractedDoc)
+      console.log(extractedDoc)
+    } catch (error) {
+      console.error(error)
     }
+  }
 
+  useEffect(() => {
     if (docId) {
       getData()
     }
@@ -132,17 +138,17 @@ const DocViewLeft = (props: { docId: string }) => {
       <>
         <div onClick={toggleDrawer(true)}>
           <Icon icon='mdi:eye-outline' fontSize={20} onClick={toggleDrawer(true)} />
-          Ver
+          Ver Texto
         </div>
         <Dialog
           open={state}
           onClose={handleEditClose}
           aria-labelledby='user-view-edit'
-          sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 680, p: [2, 4] } }}
+          sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 900, p: [2, 4] } }}
           aria-describedby='user-view-edit-description'
         >
           <DialogTitle id='user-view-edit' sx={{ textAlign: 'center', fontSize: '1.5rem !important' }}>
-            {doc.numberDocument}
+            Editor de texto
             <IconButton
               size='small'
               onClick={toggleDrawer(false)}
@@ -157,60 +163,11 @@ const DocViewLeft = (props: { docId: string }) => {
             </IconButton>
           </DialogTitle>
 
-          <CardContent>
-            <Box sx={{ pt: 0, pb: 7 }}>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Titulo:</Typography>
-                <Typography variant='body2' sx={{ textTransform: 'capitalize' }}>
-                  {doc.title}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                  Estado:
-                </Typography>
-                <CustomChip
-                  skin='light'
-                  size='small'
-                  label={doc.stateDocument}
-                  color={statusColors[doc.stateDocument]}
-                  sx={{
-                    height: 20,
-                    fontWeight: 500,
-                    fontSize: '0.75rem',
-                    borderRadius: '5px',
-                    textTransform: 'capitalize'
-                  }}
-                />
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Tipo de documento:</Typography>
-                {doc.documentationType ? (
-                  <Typography variant='body2'>{doc.documentationType.typeName}</Typography>
-                ) : (
-                  <Typography variant='body2'>Tipo no disponible</Typography>
-                )}
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Descripcion:</Typography>
-                <Typography variant='body2'>{doc.description}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Tamaño del Archivo:</Typography>
-                <Typography variant='body2'>{doc.fileRegister ? doc.fileRegister.size : 'N/A'}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 2.7 }}>
-                <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Extension:</Typography>
-                <Typography variant='body2'>{doc.fileRegister ? doc.fileRegister.extension : 'N/E'}</Typography>
-              </Box>
-            </Box>
-          </CardContent>
-
-          <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button color='error' variant='outlined' onClick={toggleDrawer(false)}>
-              Cancelar
-            </Button>
-          </CardActions>
+          {doc.fileRegister && doc.fileRegister.extension === 'plain' && (
+            <div style={{ width: '100%', height: '600px', overflow: 'scroll' }}>
+              <TextEditor base64={doc.fileBase64} />
+            </div>
+          )}
         </Dialog>
       </>
     )

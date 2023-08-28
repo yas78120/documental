@@ -55,8 +55,11 @@ import TableHeader from 'src/pages/Peticiones/TableHeader'
 import AddUserDrawer from 'src/pages/Peticiones/AddDocDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import Base64FileViewer from 'src/pages/Peticiones/Base64FileViewer'
+import DocViewText from 'src/pages/Peticiones/DocViewText'
+import AddForkflow from 'src/pages/Peticiones/AddForkflow'
+import AddStep from 'src/pages/Peticiones/AddStep'
 
 interface UserRoleType {
   [key: string]: { icon: string; color: string }
@@ -69,9 +72,8 @@ interface Docu {
   documentationType: {
     typeName: string
   }
-  workflow: string
   description: string
-  fileRegister: {
+  fileRegister?: {
     _idFile: string
     filename: string
     size: number
@@ -80,6 +82,7 @@ interface Docu {
     category: string
     extension: string
   }
+  base64Template: string
   fileBase64: string
   stateDocument: string
   active: Boolean
@@ -126,9 +129,9 @@ interface CellType {
 }
 
 const docStatusObj: DocStatusType = {
-  enviado: 'success',
-  recibido: 'warning',
-  leido: 'primary'
+  ENVIADO: 'success',
+  REVISION: 'warning',
+  OBSERVADO: 'primary'
 }
 
 const StyledLink = styled(Link)(({ theme }) => ({
@@ -210,12 +213,16 @@ const RowOptions = ({ id }: { id: string }) => {
         <MenuItem sx={{ '& svg': { mr: 2 } }} onClick={handleRowOptionsClose}>
           <DocViewLeft docId={selectedId} />
         </MenuItem>
+
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
           <EditDocDrawer docId={selectedId} />
         </MenuItem>
         <MenuItem onClick={handleDeleteConfirmation} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
           Eliminar
+        </MenuItem>
+        <MenuItem sx={{ '& svg': { mr: 2 } }} onClick={handleRowOptionsClose}>
+          <DocViewText docId={selectedId} />
         </MenuItem>
       </Menu>
       {showConfirmation && (
@@ -235,6 +242,13 @@ const RowOptions = ({ id }: { id: string }) => {
 }
 
 const columns: GridColDef[] = [
+  {
+    flex: 0.0,
+    minWidth: 100,
+    field: 'actions',
+    headerName: 'Opciones',
+    renderCell: ({ row }: CellType) => <RowOptions id={row._id} />
+  },
   {
     flex: 0.1,
     minWidth: 120,
@@ -263,8 +277,8 @@ const columns: GridColDef[] = [
     headerName: 'Titulo',
     renderCell: ({ row }: CellType) => {
       return (
-        <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-          {row.title}
+        <Typography noWrap sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+          {row.description}
         </Typography>
       )
     }
@@ -330,21 +344,12 @@ const columns: GridColDef[] = [
   },
 
   {
-    flex: 0.15,
-    minWidth: 100,
-    sortable: false,
-    field: 'actions',
-    headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions id={row._id} />
-  },
-
-  {
     field: 'fileBase64',
     headerName: 'Archivo',
     flex: 0.2,
     minWidth: 150,
     renderCell: ({ row }) => {
-      // Verificar si fileRegistrer está definido antes de acceder a la propiedad base64
+      // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
 
       if (row.fileRegister) {
         return <Base64FileViewer base64={row.fileBase64} theme='dark' />
@@ -391,9 +396,9 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <Card>
-          <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
+        <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
 
+        <Card>
           <DataGrid
             getRowId={row => row._id}
             autoHeight
@@ -405,6 +410,13 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
             sx={{ '& .MuiDataGrid-columnHeaders': { borderRadius: 0 } }}
             onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
           />
+        </Card>
+
+        <Card>
+          <AddForkflow />
+        </Card>
+        <Card>
+          <AddStep />
         </Card>
       </Grid>
 

@@ -27,22 +27,19 @@ import Icon from 'src/@core/components/icon'
 import { useDispatch } from 'react-redux'
 
 // ** Actions Imports
-import { addUser, fetchData } from 'src/store/apps/user'
+import { addDoc, fetchData } from 'src/store/apps/doc'
 
 // ** Types Imports
 import { AppDispatch } from 'src/store'
 import { Direction } from '@mui/material'
 import axios from 'axios'
 import { useRouter } from 'next/router'
-import user from 'src/store/apps/user'
+import user from 'src/store/apps/doc'
 import { useDropzone } from 'react-dropzone'
 
 interface docData {
   numberDocument: string
   title: string
-  authorDocument: {
-    name: string
-  }
   documentType: string
   stateDocument: string
   documentDestinations: string
@@ -60,7 +57,6 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  authorDocument: yup.string().required(),
   digitalUbication: yup.string().required(),
   documentType: yup.string().required(),
   stateDocument: yup.string().required(),
@@ -78,9 +74,6 @@ const SidebarEditUser = (props: { docId: string }) => {
   const [doc, setDoc] = useState<docData>({
     numberDocument: '',
     title: '',
-    authorDocument: {
-      name: ''
-    },
     documentType: '',
     stateDocument: '',
     documentDestinations: '',
@@ -210,23 +203,6 @@ const SidebarEditUser = (props: { docId: string }) => {
                     onChange={handleChange}
                     value={doc.title}
                     error={Boolean(errors.title)}
-                    autoComplete='off'
-                  />
-                )}
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='authorDocument'
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Author'
-                    onChange={handleChange}
-                    value={doc.authorDocument.name}
-                    error={Boolean(errors.authorDocument)}
                     autoComplete='off'
                   />
                 )}

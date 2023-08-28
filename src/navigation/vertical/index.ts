@@ -53,15 +53,29 @@ const navigation = (): VerticalNavItemsType => {
       icon: 'mdi:file-document-outline',
       children: [
         {
-          title: 'Activos',
+          title: 'Personales',
           path: '/documents/actives'
+        },
+        {
+          title: 'Enviados',
+          path: '/enviados'
           //icon: 'mdi:form-select'
         },
         {
-          title: 'Inactivos',
-          path: '/documents/inactives'
+          title: 'Recividos',
+          path: '/documents/recividos'
+        },
+        {
+          title: 'Enviar',
+          path: 'documents/enviar'
+          //icon: 'mdi:form-select'
         }
       ]
+    },
+    {
+      title: 'Documentos Eliminados',
+      path: '/documents/inactives',
+      icon: 'mdi:file-document-outline'
     }
   ]
 }

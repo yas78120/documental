@@ -29,7 +29,7 @@ import Icon from 'src/@core/components/icon'
 import { useDispatch } from 'react-redux'
 
 // ** Actions Imports
-import { addUser } from 'src/store/apps/user'
+import { addDoc } from 'src/store/apps/doc'
 
 // ** Types Imports
 import { AppDispatch } from 'src/store'
@@ -44,17 +44,16 @@ interface SidebarAddUserType {
 
 interface docData {
   title: string
-  ciPersonal: string
-  documentType: string
+  documentTypeName: string
   stateDocument: string
-  documentDestinations: string
+  workflowName: string
   description: string
   file: string
 }
 
-interface departDestino {
+interface workflowName {
   _id: string
-  name: string
+  nombre: string
 }
 interface docType {
   _id: string
@@ -81,20 +80,18 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  ciPersonal: yup.string().required(),
-  documentType: yup.string().required(),
+  documentTypeName: yup.string().required(),
   stateDocument: yup.string().required(),
-  documentDestinations: yup.string().required(),
+  workflowName: yup.string().required(),
   description: yup.string().required(),
   file: yup.mixed().required('Documento es requerido')
 })
 
 const defaultValues = {
   title: '',
-  ciPersonal: '',
-  documentType: '',
+  documentTypeName: '',
   stateDocument: '',
-  documentDestinations: '',
+  workflowName: '',
   description: '',
   file: ''
 }
@@ -113,7 +110,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     digitalUbication: '',
     documentType: '',
     stateDocument: '',
-    documentDestinations: '',
+    workflowName: '',
     description: ''
   })*/
   // ** Hooks
@@ -129,21 +126,22 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
-  const [groupDepart, setgroupDepart] = React.useState<departDestino[]>([])
+  const [groupworkflowName, setgroupworkflowName] = React.useState<workflowName[]>([])
   const [groupTypes, setgroupTypes] = React.useState<docType[]>([])
 
   const getDestino = async () => {
     try {
-      const response = await axios.get<departDestino[]>(`http://10.10.214.219:8085/organization-chart`)
+      const response = await axios.get<workflowName[]>(`${process.env.NEXT_PUBLIC_DOCUMENTAL_WORKFLOW}active`)
       console.log(response.data)
-      setgroupDepart(response.data)
+      setgroupworkflowName(response.data)
     } catch (error) {
       console.error(error)
     }
   }
   const getTypeDoc = async () => {
     try {
-      const response = await axios.get<docType[]>(`http://10.10.214.219:8085/documentation-type`)
+      const response = await axios.get<docType[]>(`${process.env.NEXT_PUBLIC_DOCUMENTATION_TYPE}active`)
+
       console.log(response.data)
       setgroupTypes(response.data)
     } catch (error) {
@@ -189,6 +187,11 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     reset()
   }*/
 
+  const [file, setFile] = useState<File | null>(null)
+  const onDrop = (acceptedFiles: File[]) => {
+    setFile(acceptedFiles[0])
+  }
+
   const convertFileToBase64 = (file: File) =>
     new Promise<string | ArrayBuffer | null>((resolve, reject) => {
       const reader = new FileReader()
@@ -203,13 +206,13 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     })
 
   const onSubmit = async (data: docData) => {
+    console.log(data)
     if (file) {
       const base64File = await convertFileToBase64(file)
       data.file = base64File as string
     }
 
-    dispatch(addUser({ ...data }))
-    console.log(data)
+    dispatch(addDoc({ ...data }))
 
     toggle()
     reset()
@@ -218,12 +221,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const handleClose = () => {
     toggle()
     reset()
-  }
-
-  const [file, setFile] = useState<File | null>(null)
-  const onDrop = (acceptedFiles: File[]) => {
-    setFile(acceptedFiles[0])
-    console.log(setFile)
   }
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop })
@@ -266,29 +263,9 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{errors.title.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='ciPersonal'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Autor'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Oliver'
-                  error={Boolean(errors.ciPersonal)}
-                  autoComplete='off'
-                />
-              )}
-            />
-            {errors.ciPersonal && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.ciPersonal.message}</FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
             Tipo de Documento
             <Controller
-              name='documentType'
+              name='documentTypeName'
               control={control}
               rules={{ required: true }}
               render={({ field: { onChange } }) => (
@@ -304,7 +281,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   }}
                   open={isOpen2}
                   onClose={() => setIsOpen2(false)}
-                  error={Boolean(errors.documentDestinations)}
+                  error={Boolean(errors.workflowName)}
                   autoComplete='off'
                   onOpen={() => setIsOpen2(true)}
                 >
@@ -316,8 +293,8 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 </Select>
               )}
             />
-            {errors.documentType && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentType.message}</FormHelperText>
+            {errors.documentTypeName && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentTypeName.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -341,9 +318,9 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
-            Destino
+            Flujo de trabajo
             <Controller
-              name='documentDestinations'
+              name='workflowName'
               control={control}
               rules={{ required: true }}
               render={({ field: { onChange } }) => (
@@ -359,20 +336,20 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   }}
                   open={isOpen}
                   onClose={() => setIsOpen(false)}
-                  error={Boolean(errors.documentDestinations)}
+                  error={Boolean(errors.workflowName)}
                   autoComplete='off'
                   onOpen={() => setIsOpen(true)}
                 >
-                  {groupDepart.map(option => (
-                    <MenuItem key={option._id} value={option.name}>
-                      {option.name}
+                  {groupworkflowName.map(option => (
+                    <MenuItem key={option._id} value={option.nombre}>
+                      {option.nombre}
                     </MenuItem>
                   ))}
                 </Select>
               )}
             />
-            {errors.documentDestinations && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentDestinations.message}</FormHelperText>
+            {errors.workflowName && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.workflowName.message}</FormHelperText>
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -405,10 +382,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
-              Submit
+              Enviar
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
-              Cancel
+              Cancelar
             </Button>
           </Box>
         </form>

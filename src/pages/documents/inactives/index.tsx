@@ -38,10 +38,6 @@ import CardStatisticsHorizontal from 'src/@core/components/card-statistics/card-
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
 
-// ** Actions Imports
-//import { deleteDoc } from 'src/store/apps/user'
-import { deleteUser, fetchData } from 'src/store/apps/user'
-
 // ** Third Party Components
 import axios from 'axios'
 
@@ -55,23 +51,16 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/
 // ** Custom Table Components Imports
 
 import TableHeader from 'src/pages/Peticiones/TableHeader'
-import AddUserDrawer from 'src/pages/Peticiones/AddUserDrawer'
+import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 
-interface UserRoleType {
+interface DocRoleType {
   [key: string]: { icon: string; color: string }
 }
 interface Docu {
   _id: string
   numberDocument: string
   title: string
-  authorDocument: {
-    name: string
-    ci: string
-    email: string
-    phone: string
-    nationality: string
-  }
   documentationType: {
     typeName: string
   }
@@ -125,7 +114,7 @@ const AssetList: React.FC = () => {
     })
 }
 */
-  interface UserStatusType {
+  interface DocStatusType {
     [key: string]: ThemeColor
   }
 
@@ -201,7 +190,7 @@ const AssetList: React.FC = () => {
 
   const columns = [
     {
-      flex: 0.08,
+      flex: 0.06,
       minWidth: 100,
       field: 'numberDocument',
       headerName: 'DOCUMENTO',
@@ -211,30 +200,18 @@ const AssetList: React.FC = () => {
         return (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-              <StyledLink href='/apps/user/view/overview/'>{numberDocument}</StyledLink>
+              <StyledLink href='/apps/Doc/view/overview/'>{numberDocument}</StyledLink>
               <Typography noWrap variant='caption'></Typography>
             </Box>
           </Box>
         )
       }
     },
+
     {
-      flex: 0.08,
-      minWidth: 120,
-      field: 'authorDocument',
-      headerName: 'Autor',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Typography noWrap variant='body2'>
-            {row.authorDocument.name}
-          </Typography>
-        )
-      }
-    },
-    {
-      flex: 0.08,
+      flex: 0.1,
       field: 'title',
-      minWidth: 120,
+      minWidth: 160,
       headerName: 'Titulo',
       renderCell: ({ row }: CellType) => {
         return (
@@ -244,8 +221,9 @@ const AssetList: React.FC = () => {
         )
       }
     },
+
     {
-      flex: 0.1,
+      flex: 0.13,
       minWidth: 200,
       headerName: 'Descripcion',
       field: 'currentPlan',
@@ -258,8 +236,8 @@ const AssetList: React.FC = () => {
       }
     },
     {
-      flex: 0.09,
-      minWidth: 110,
+      flex: 0.06,
+      minWidth: 90,
       field: 'status',
       headerName: 'Estado',
       renderCell: ({ row }: CellType) => {
@@ -275,8 +253,8 @@ const AssetList: React.FC = () => {
     },
 
     {
-      flex: 0.1,
-      minWidth: 90,
+      flex: 0.08,
+      minWidth: 110,
       sortable: false,
       field: 'actions',
       headerName: 'Actions',
@@ -289,7 +267,7 @@ const AssetList: React.FC = () => {
   const [value, setValue] = useState<string>('')
   const [status, setStatus] = useState<string>('')
   const [pageSize, setPageSize] = useState<number>(10)
-  const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
+  const [addDocOpen, setAddDocOpen] = useState<boolean>(false)
 
   // ** Hooks
 
@@ -297,14 +275,12 @@ const AssetList: React.FC = () => {
     setValue(val)
   }, [])
 
-  const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
+  const toggleAddDocDrawer = () => setAddDocOpen(!addDocOpen)
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
-
           <DataGrid
             getRowId={row => row._id}
             autoHeight
@@ -320,7 +296,7 @@ const AssetList: React.FC = () => {
         </Card>
       </Grid>
 
-      <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
+      <AddDocDrawer open={addDocOpen} toggle={toggleAddDocDrawer} />
     </Grid>
   )
 }
