@@ -75,7 +75,6 @@ const AuthProvider = ({ children }: Props) => {
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
     //{"id":1,"role":"admin","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"}
     // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw
-
     // axios
     //   .post(authConfig.loginEndpoint, params)
     //   .then(async response => {
@@ -83,15 +82,11 @@ const AuthProvider = ({ children }: Props) => {
     //       ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
     //       : null
     //     const returnUrl = router.query.returnUrl
-
     //     setUser({ ...response.data.userData })
     //     params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
-
     //     const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-
     //     router.replace(redirectURL as string)
     //   })
-
     //   .catch(err => {
     //     if (errorCallback) errorCallback(err)
     //   })
@@ -101,7 +96,10 @@ const AuthProvider = ({ children }: Props) => {
     setUser(null)
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
-    router.push('/login')
+    localStorage.removeItem('token')
+    window.location.href = 'http://localhost:3000/login'
+
+    //router.push('/login')
   }
 
   const handleRegister = (params: RegisterParams, errorCallback?: ErrCallbackType) => {
@@ -116,10 +114,16 @@ const AuthProvider = ({ children }: Props) => {
       })
       .catch((err: { [key: string]: string }) => (errorCallback ? errorCallback(err) : null))
   }
-  console.log(user)
+  //console.log(user)
   const values = {
-    user: {"id":1,"usepage":"use-page-frontend","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"} as any,
-    loading:false,
+    user: {
+      id: 1,
+      usepage: 'use-page-frontend',
+      fullName: 'John Doe',
+      username: 'johndoe',
+      email: 'admin@materialize.com'
+    } as any,
+    loading: false,
     // user,
     // loading,
     setUser,

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment } from 'react'
+import { useState, SyntheticEvent, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -22,9 +22,20 @@ import { useAuth } from 'src/hooks/useAuth'
 
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from 'src/store'
+import { fetchUser } from 'src/store/apps/user'
 
 interface Props {
   settings: Settings
+}
+
+interface user {
+  ci: string
+  name: string
+  lastName: string
+  unity: string
+  _id: string
 }
 
 // ** Styled Components
@@ -81,6 +92,15 @@ const UserDropdown = (props: Props) => {
     handleDropdownClose()
   }
 
+  const dispatch = useDispatch<AppDispatch>()
+
+  useEffect(() => {
+    dispatch(fetchUser())
+  }, [dispatch])
+
+  const userName = useSelector((state: RootState) => state.user.user)
+  //console.log(userName)
+
   return (
     <Fragment>
       <Badge
@@ -121,7 +141,7 @@ const UserDropdown = (props: Props) => {
               <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userName.name}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 Admin
               </Typography>

@@ -3,9 +3,11 @@ import { configureStore } from '@reduxjs/toolkit'
 
 // ** Reducers
 import doc from 'src/store/apps/doc'
+import user from 'src/store/apps/user'
 export const store = configureStore({
   reducer: {
-    doc
+    doc: doc,
+    user: user
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

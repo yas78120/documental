@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+/*import { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer'
@@ -44,14 +44,17 @@ interface SidebarAddUserType {
 
 interface docData {
   title: string
-  documentTypeName: string
+  ciPersonal: string
+  documentType: string
+  stateDocument: string
+  documentDestinations: string
   description: string
   file: string
 }
 
-interface workflowName {
+interface departDestino {
   _id: string
-  nombre: string
+  name: string
 }
 interface docType {
   _id: string
@@ -78,14 +81,20 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 
 const schema = yup.object().shape({
   title: yup.string().required(),
-  documentTypeName: yup.string().required(),
+  ciPersonal: yup.string().required(),
+  documentType: yup.string().required(),
+  stateDocument: yup.string().required(),
+  documentDestinations: yup.string().required(),
   description: yup.string().required(),
   file: yup.mixed().required('Documento es requerido')
 })
 
 const defaultValues = {
   title: '',
-  documentTypeName: '',
+  ciPersonal: '',
+  documentType: '',
+  stateDocument: '',
+  documentDestinations: '',
   description: '',
   file: ''
 }
@@ -94,20 +103,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   // ** Props
   const { open, toggle } = props
 
-  // ** State
-  /*
-  const [plan, setPlan] = useState<string>('basic')
-  const [role, setRole] = useState<string>('subscriber')
-  const [asset, setAsset] = useState({
-    title: '',
-    ciPersonal: '',
-    digitalUbication: '',
-    documentType: '',
-    stateDocument: '',
-    workflowName: '',
-    description: ''
-  })*/
-  // ** Hooks
+
   const dispatch = useDispatch<AppDispatch>()
   const {
     reset,
@@ -120,13 +116,22 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
+  const [groupDepart, setgroupDepart] = React.useState<departDestino[]>([])
   const [groupTypes, setgroupTypes] = React.useState<docType[]>([])
 
+  const getDestino = async () => {
+    try {
+      const response = await axios.get<departDestino[]>(`http://10.10.214.237:3501/organization-chart`)
+      console.log(response.data)
+      setgroupDepart(response.data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
   const getTypeDoc = async () => {
     try {
-      const response = await axios.get<docType[]>(`${process.env.NEXT_PUBLIC_DOCUMENTATION_TYPE}active`)
-
-      //console.log(response.data)
+      const response = await axios.get<docType[]>(`http://10.10.214.237:3501/documentation-type`)
+      console.log(response.data)
       setgroupTypes(response.data)
     } catch (error) {
       console.error(error)
@@ -134,91 +139,50 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   }
 
   useEffect(() => {
+    getDestino()
     getTypeDoc()
   }, [])
 
-  /*
-  const [groupworkflowName, setgroupworkflowName] = React.useState<workflowName[]>([])
-  const getDestino = async () => {
-    try {
-      const response = await axios.get<workflowName[]>(`${process.env.NEXT_PUBLIC_DOCUMENTAL_WORKFLOW}active`)
-      console.log(response.data)
-      setgroupworkflowName(response.data)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-<FormControl fullWidth sx={{ mb: 6 }}>
-            Flujo de trabajo
-            <Controller
-              name='workflowName'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange } }) => (
-                <Select
-                  multiple
-                  value={selectedValues}
-                  onChange={event => {
-                    const selectedValues = event.target.value as string[]
-                    const selectedValuesAsString = selectedValues.join(',')
-                    setSelectedValues(selectedValues)
-                    onChange(selectedValuesAsString)
-                    setIsOpen(false) // Cerrar el Select después de la selección
-                  }}
-                  open={isOpen}
-                  onClose={() => setIsOpen(false)}
-                  error={Boolean(errors.workflowName)}
-                  autoComplete='off'
-                  onOpen={() => setIsOpen(true)}
-                >
-                  {groupworkflowName.map(option => (
-                    <MenuItem key={option._id} value={option.nombre}>
-                      {option.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            />
-            {errors.workflowName && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.workflowName.message}</FormHelperText>
-            )}
-          </FormControl>
 
   const [selectedValues, setSelectedValues] = useState<string[]>([])
-*/
+  const [selectedValues2, setSelectedValues2] = useState<string[]>([])
 
-  const [selectedValues2, setSelectedValues2] = useState<string>('')
-
-  const [file, setFile] = useState<File | null>(null)
-  const onDrop = (acceptedFiles: File[]) => {
-    setFile(acceptedFiles[0])
-  }
 
   const convertFileToBase64 = (file: File) =>
     new Promise<string | ArrayBuffer | null>((resolve, reject) => {
       const reader = new FileReader()
+
       reader.onload = () => {
         resolve(reader.result)
       }
+
       reader.onerror = reject
+
       reader.readAsDataURL(file)
     })
 
   const onSubmit = async (data: docData) => {
-    console.log(data)
     if (file) {
       const base64File = await convertFileToBase64(file)
       data.file = base64File as string
     }
 
     dispatch(addDoc({ ...data }))
-    reset()
+    console.log(data)
+
     toggle()
+    reset()
   }
 
   const handleClose = () => {
-    reset()
     toggle()
+    reset()
+  }
+
+  const [file, setFile] = useState<File | null>(null)
+  const onDrop = (acceptedFiles: File[]) => {
+    setFile(acceptedFiles[0])
+    console.log(setFile)
   }
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop })
@@ -232,7 +196,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 700 } } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800 } } }}
     >
       <Header>
         <Typography variant='h6'>Añadir Documento</Typography>
@@ -261,23 +225,45 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             {errors.title && <FormHelperText sx={{ color: 'error.main' }}>{errors.title.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='ciPersonal'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Autor'
+                  value={value}
+                  onChange={onChange}
+                  placeholder='Oliver'
+                  error={Boolean(errors.ciPersonal)}
+                  autoComplete='off'
+                />
+              )}
+            />
+            {errors.ciPersonal && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.ciPersonal.message}</FormHelperText>
+            )}
+          </FormControl>
+          <FormControl fullWidth sx={{ mb: 6 }}>
             Tipo de Documento
             <Controller
-              name='documentTypeName'
+              name='documentType'
               control={control}
               rules={{ required: true }}
               render={({ field: { onChange } }) => (
                 <Select
+                  multiple
                   value={selectedValues2}
                   onChange={event => {
-                    const selectedValues = event.target.value as string
+                    const selectedValues = event.target.value as string[]
+                    const selectedValuesAsString = selectedValues.join(',')
                     setSelectedValues2(selectedValues)
-                    onChange(selectedValues)
+                    onChange(selectedValuesAsString)
                     setIsOpen2(false)
                   }}
                   open={isOpen2}
                   onClose={() => setIsOpen2(false)}
-                  error={Boolean(errors.documentTypeName)}
+                  error={Boolean(errors.documentDestinations)}
                   autoComplete='off'
                   onOpen={() => setIsOpen2(true)}
                 >
@@ -289,11 +275,65 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 </Select>
               )}
             />
-            {errors.documentTypeName && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentTypeName.message}</FormHelperText>
+            {errors.documentType && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentType.message}</FormHelperText>
             )}
           </FormControl>
-
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='stateDocument'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Estado'
+                  value={value}
+                  onChange={onChange}
+                  placeholder='Aprobado'
+                  error={Boolean(errors.stateDocument)}
+                  autoComplete='off'
+                />
+              )}
+            />
+            {errors.stateDocument && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.stateDocument.message}</FormHelperText>
+            )}
+          </FormControl>
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            Destino
+            <Controller
+              name='documentDestinations'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange } }) => (
+                <Select
+                  multiple
+                  value={selectedValues}
+                  onChange={event => {
+                    const selectedValues = event.target.value as string[]
+                    const selectedValuesAsString = selectedValues.join(',')
+                    setSelectedValues(selectedValues)
+                    onChange(selectedValuesAsString)
+                    setIsOpen(false) // Cerrar el Select después de la selección
+                  }}
+                  open={isOpen}
+                  onClose={() => setIsOpen(false)}
+                  error={Boolean(errors.documentDestinations)}
+                  autoComplete='off'
+                  onOpen={() => setIsOpen(true)}
+                >
+                  {groupDepart.map(option => (
+                    <MenuItem key={option._id} value={option.name}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+            {errors.documentDestinations && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.documentDestinations.message}</FormHelperText>
+            )}
+          </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='description'
@@ -324,10 +364,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
-              Enviar
+              Submit
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
-              Cancelar
+              Cancel
             </Button>
           </Box>
         </form>
@@ -336,4 +376,4 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   )
 }
 
-export default SidebarAddUser
+export default SidebarAddUser*/

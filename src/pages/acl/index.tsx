@@ -39,7 +39,7 @@ import { ThemeColor } from 'src/@core/layouts/types'
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
 import axios from 'axios'
-import { fetchData } from 'src/store/apps/doc'
+import { fetchData } from 'src/store/apps/user'
 
 interface ColorsType {
   [key: string]: ThemeColor
@@ -87,6 +87,8 @@ const Sub = styled('sub')({
 })
 
 //const [aa, setaa] = useState<Docu[]>([])
+
+
 
 const DocViewLeft = () => {
   // ** States

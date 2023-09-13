@@ -91,6 +91,17 @@ const CreateStepComponent = () => {
     })
   }
 
+  const fetchStep = () => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_DOCUMENTAL_STEP}active`)
+      .then(response => {
+        console.log(response.data)
+      })
+      .catch(error => {
+        console.error(error)
+      })
+  }
+
   const handleCreateStep = () => {
     console.log(stepData)
     axios
@@ -100,6 +111,7 @@ const CreateStepComponent = () => {
         }
       })
       .then(response => {
+        fetchStep()
         console.log('Respuesta de la API:', response.data)
         setStepData({
           step: '',

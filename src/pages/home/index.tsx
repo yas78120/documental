@@ -11,6 +11,11 @@ import { useEffect } from 'react'
 import axios from 'axios'
 
 const Home = () => {
+  /*
+  useEffect(() => {
+    // Llamar a window.location.reload() para recargar la página cuando se accede
+    window.location.reload()
+  }, [])*/  
   const router = useRouter()
   //const { id, token } = router.query
   //console.log(id, token)

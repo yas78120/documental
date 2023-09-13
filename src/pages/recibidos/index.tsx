@@ -78,7 +78,7 @@ interface Docu {
     filename: string
     size: number
     filePath: string
-    status: string
+    status: string 
     category: string
     extension: string
   }
@@ -243,10 +243,10 @@ const RowOptions = ({ id }: { id: string }) => {
 
 const columns: GridColDef[] = [
   {
-    flex: 0.0,
-    minWidth: 100,
+    flex: 0.07,
+    minWidth: 60,
     field: 'actions',
-    headerName: 'Opciones',
+    headerName: '',
     renderCell: ({ row }: CellType) => <RowOptions id={row._id} />
   },
   {
@@ -278,7 +278,7 @@ const columns: GridColDef[] = [
     renderCell: ({ row }: CellType) => {
       return (
         <Typography noWrap sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {row.description}
+          {row.title}
         </Typography>
       )
     }
@@ -352,7 +352,7 @@ const columns: GridColDef[] = [
       // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
 
       if (row.fileRegister) {
-        return <Base64FileViewer base64={row.fileBase64} theme='dark' />
+        return <Base64FileViewer base64={row.fileBase64} />
       } else {
         return <div>No hay archivo adjunto</div>
       }
@@ -361,7 +361,7 @@ const columns: GridColDef[] = [
 ]
 
 // ** State
-const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) => {
+const UserList = () => {
   const [role, setRole] = useState<string>('')
   const [plan, setPlan] = useState<string>('')
   const [value, setValue] = useState<string>('')
@@ -375,10 +375,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   useEffect(() => {
     dispatch(
       fetchData({
-        role,
-        status,
-        q: value,
-        currentPlan: plan
+        role
       })
     )
   }, [dispatch, plan, role, status, value])
@@ -396,8 +393,6 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
-
         <Card>
           <DataGrid
             getRowId={row => row._id}
@@ -411,29 +406,11 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
             onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
           />
         </Card>
-
-        <Card>
-          <AddForkflow />
-        </Card>
-        <Card>
-          <AddStep />
-        </Card>
       </Grid>
 
       <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
     </Grid>
   )
-}
-
-export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get(`${process.env.NEXT_PUBLIC_DOCUMENTAL}active`)
-  const apiData = res.data
-
-  return {
-    props: {
-      apiData
-    }
-  }
 }
 
 export default UserList

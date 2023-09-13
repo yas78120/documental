@@ -15,7 +15,8 @@ import axios from 'axios'
 import DocumentViewer from './DocumentViewer'
 import { Document, Page } from 'react-pdf'
 import DocViewer from 'react-doc-viewer'
-import TextEditor from './TextEditor'
+import TextEditorDraft from './TextEditorDraft'
+import WordDocumentViewer from './WordDocumentViewer'
 
 interface ColorsType {
   [key: string]: ThemeColor
@@ -88,7 +89,7 @@ const DocViewLeft = (props: { docId: string }) => {
   const getData = async () => {
     try {
       const response = await axios.get<Docu>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
-      console.log(response.data)
+      //console.log(response.data)
       // Extraer los campos necesarios de la respuesta
       const { _id, numberDocument, title, fileRegister, fileBase64, documentationType, description } = response.data
       // Crear un nuevo objeto con los campos extraídos
@@ -144,7 +145,7 @@ const DocViewLeft = (props: { docId: string }) => {
           open={state}
           onClose={handleEditClose}
           aria-labelledby='user-view-edit'
-          sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 900, p: [2, 4] } }}
+          sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 1000, minWidth: 600, p: [2, 4] } }}
           aria-describedby='user-view-edit-description'
         >
           <DialogTitle id='user-view-edit' sx={{ textAlign: 'center', fontSize: '1.5rem !important' }}>
@@ -165,7 +166,7 @@ const DocViewLeft = (props: { docId: string }) => {
 
           {doc.fileRegister && doc.fileRegister.extension === 'plain' && (
             <div style={{ width: '100%', height: '600px', overflow: 'scroll' }}>
-              <TextEditor base64={doc.fileBase64} />
+              <TextEditorDraft base64={doc.fileBase64} />
             </div>
           )}
         </Dialog>

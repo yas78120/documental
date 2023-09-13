@@ -7,6 +7,18 @@ function TextEditor({ base64 }) {
     const binaryString = String.fromCharCode.apply(null, new Uint16Array(buffer))
     return decodeURIComponent(escape(binaryString))
   }
+
+  let data
+  if (base64.startsWith('JVBER')) {
+    data = 'data:application/pdf;base64,' + base64
+    base64 = data
+  } else if (base64.startsWith('UEsDB')) {
+    data = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,' + base64
+    base64 = data
+  } else if (base64.startsWith('CQkJC') || base64.startsWith('OC4yM')) {
+    data = 'data:@file/plain;base64,' + base64
+    base64 = data
+  }
   const base64ToString = base64 => {
     const bytes = new Uint8Array(Buffer.from(base64, 'base64'))
     return new TextDecoder().decode(bytes)

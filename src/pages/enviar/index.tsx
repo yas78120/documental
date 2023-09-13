@@ -26,7 +26,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 
 // ** Actions Imports
 //import { deleteDoc } from 'src/store/apps/Doc'
-import Doc, { deleteDoc, fetchData, fetchDataSend } from 'src/store/apps/doc'
+import Doc, { deleteDoc, fetchData } from 'src/store/apps/doc'
 
 // ** Third Party Components
 import axios from 'axios'
@@ -38,16 +38,18 @@ import { ThemeColor } from 'src/@core/layouts/types'
 // ** Custom Table Components Imports
 
 import TableHeader from 'src/pages/Peticiones/TableHeader'
-import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
+import SendFileWorkflow from 'src/pages/Peticiones/SendFileWorkflow'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import Base64FileViewer from 'src/pages/Peticiones/Base64FileViewer'
-import DocViewText from '../Peticiones/DocViewText'
-import AddForkflow from '../Peticiones/AddForkflow'
-import AddStep from '../Peticiones/AddStep'
-import SendFile from '../Peticiones/SendFileWorkflow'
-import React from 'react'
+import DocViewText from 'src/pages/Peticiones/DocViewText'
+import AddForkflow from 'src/pages/Peticiones/AddForkflow'
+import AddStep from 'src/pages/Peticiones/AddStep'
+import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
+import { fetchUser } from 'src/store/apps/user'
+import SendFileUser from '../Peticiones/SendFileUser'
+import { FaEye, FaPaperPlane } from 'react-icons/fa'
 import Base64 from '../Peticiones/Base64'
 
 interface Docu {
@@ -68,27 +70,6 @@ interface Docu {
     category: string
     extension: string
   }
-  bitacoraWorkflow?: {
-    _id: string
-    oficinaActual: string
-    nameOficinaActual: string
-    oficinasPorPasar?: {
-      _id: string
-      oficinaActual: string
-      paso: string
-      completado: boolean
-    }
-    receivedUsers?: {
-      ciUser: string
-      idOfUser: string
-      _id: string
-    }
-  }
-  userInfo?: {
-    name: string
-    unity: string
-  }
-  stateDocumentWorkflow: string
   base64Template: string
   fileBase64: string
   stateDocument: string
@@ -193,19 +174,40 @@ const RowOptions = ({ id }: { id: string }) => {
     </>
   )
 }
-
 const DocList = () => {
-  const [sendFileOpen, setSendFileOpen] = useState(false)
+  const [SendFileUserOpen, setSendFileUserOpen] = useState(false)
+  const [SendFileWorkflowOpen, setSendFileWorkflowOpen] = useState(false)
   const [selectedDocId, setSelectedDocId] = useState<string>('')
 
   const handleSendButtonClick = (docId: string) => {
     setSelectedDocId(docId) // Guarda el ID del documento seleccionado
-    setSendFileOpen(true) // Muestra el componente SendFile
+  }
+
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedOption, setSelectedOption] = useState<string>('')
+
+  const handleMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
+    setMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null)
+  }
+
+  const handleOptionSelect = (option: string) => {
+    setSelectedOption(option)
+    handleMenuClose()
+    if (option === 'flujoTrabajo') {
+      setSendFileWorkflowOpen(true)
+    }
+    if (option === 'usuario') {
+      setSendFileUserOpen(true)
+    }
   }
 
   const columns: GridColDef[] = [
     {
-      flex: 0.08,
+      flex: 0.07,
       minWidth: 60,
       field: 'actions',
       headerName: '',
@@ -238,7 +240,7 @@ const DocList = () => {
       minWidth: 120,
       headerName: 'Titulo',
       renderCell: ({ row }: CellType) => {
-        const formattedTitle = row.title.charAt(0).toUpperCase() + row.title.slice(1).toLowerCase()
+        const formattedTitle = row.title?.charAt(0).toUpperCase() + row.title?.slice(1).toLowerCase()
 
         return (
           <Box
@@ -258,7 +260,7 @@ const DocList = () => {
       headerName: 'Descripcion',
       field: 'description',
       renderCell: ({ row }: CellType) => {
-        const formattedDescription = row.description.charAt(0).toUpperCase() + row.description.slice(1).toLowerCase()
+        const formattedDescription = row.description?.charAt(0).toUpperCase() + row.description?.slice(1).toLowerCase()
 
         return (
           <Box
@@ -275,7 +277,6 @@ const DocList = () => {
         )
       }
     },
-
     {
       flex: 0.2,
       minWidth: 140,
@@ -283,86 +284,62 @@ const DocList = () => {
       field: 'documentationType',
       renderCell: ({ row }: CellType) => {
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'right' }}>
-            <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-              {row.documentationType.typeName}
-            </Typography>
-          </Box>
+          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+            {row.documentationType.typeName}
+          </Typography>
         )
       }
     },
-
+    /*
     {
       flex: 0.15,
       minWidth: 120,
       headerName: 'Estado',
-      field: 'stateDocumentWorkflow',
+      field: 'stateDocument',
       renderCell: ({ row }: CellType) => {
         return (
           <CustomChip
             skin='light'
             size='small'
-            label={row.stateDocumentWorkflow}
-            color={docStatusObj[row.stateDocumentWorkflow]}
+            label={row.stateDocument}
+            color={docStatusObj[row.stateDocument]}
             sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
           />
         )
       }
     },
-
+*/
     {
-      flex: 0.15,
-      minWidth: 140,
-      headerName: 'Oficina Actual',
-      field: 'bitacoraWorkflow',
-      renderCell: ({ row }: CellType) => {
-        if (Array.isArray(row.bitacoraWorkflow) && row.bitacoraWorkflow.length > 0) {
-          const firstBitacora = row.bitacoraWorkflow[0]
-          if (firstBitacora?.nameOficinaActual) {
-            return (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography noWrap sx={{ color: 'text.secundary ', textTransform: 'capitalize' }}>
-                  {firstBitacora.nameOficinaActual.charAt(0).toUpperCase() +
-                    firstBitacora.nameOficinaActual.slice(1).toLowerCase()}
-                </Typography>
-              </Box>
-            )
-          }
-        }
-        return null
-      }
-    },
-    {
-      field: 'action', // O el nombre que desees
-      headerName: 'Enviar', // O el título que desees
-      flex: 0.01,
-      minWidth: 80,
+      field: 'action',
+      headerName: 'Enviar',
+      flex: 0.1,
+      minWidth: 110,
       renderCell: ({ row }: CellType) => (
-        <Button variant='contained' color='primary' onClick={() => handleSendButtonClick(row._id)}>
-          Enviar
-        </Button>
+        <>
+          <Button
+            variant='outlined'
+            color='primary'
+            onClick={event => {
+              handleSendButtonClick(row._id) // Pasa la ID del documento a la función
+              handleMenuOpen(event) // Abre el menú
+            }}
+          >
+            Enviar
+          </Button>
+          <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
+            <MenuItem onClick={() => handleOptionSelect('usuario')}>A un Usuario</MenuItem>
+            <MenuItem onClick={() => handleOptionSelect('unidad')}>A una Unidad</MenuItem>
+            <MenuItem onClick={() => handleOptionSelect('flujoTrabajo')}>Flujo de Trabajo</MenuItem>
+          </Menu>
+        </>
       )
     },
 
     {
-      field: 'viewDocument',
-      headerName: 'Ver',
+      field: 'fileBase64',
+      headerName: 'Ar',
       flex: 0.01,
       minWidth: 60,
-      renderCell: ({ row }: CellType) => {
-        if (row.fileRegister) {
-          return <Base64 base64={row.fileBase64} />
-        } else {
-          return <div>No hay archivo adjunto</div>
-        }
-      }
-    },
-
-    {
-      field: 'fileBase64',
-      headerName: '',
-      flex: 0.01,
-      minWidth: 80,
       renderCell: ({ row }) => {
         // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
 
@@ -372,34 +349,52 @@ const DocList = () => {
           return <div>No hay archivo adjunto</div>
         }
       }
+    },
+    {
+      field: 'viewDocument',
+      headerName: 'Ver Documento',
+      flex: 0.01,
+      minWidth: 80,
+      renderCell: ({ row }: CellType) => {
+        if (row.fileRegister) {
+          return <Base64 base64={row.fileBase64} />
+        } else {
+          return <div>No hay archivo adjunto</div>
+        }
+      }
     }
   ]
 
   // ** State
+
   const [role, setRole] = useState<string>('')
   const [plan, setPlan] = useState<string>('')
   const [value, setValue] = useState<string>('')
   const [status, setStatus] = useState<string>('')
   const [pageSize, setPageSize] = useState<number>(10)
-  const [addDocOpen, setAddDocOpen] = useState<boolean>(false)
+  const [addDocOpen, setAddUserOpen] = useState<boolean>(false)
 
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
 
+  /*useEffect(() => {
+    dispatch(fetchUser())
+  }, [dispatch])
+  const user = useSelector((state: RootState) => state.user.user)
+  const roles: string[] = user.rolUser
+  console.log(user)*/
+
   useEffect(() => {
     dispatch(
-      fetchDataSend({
+      fetchData({
         role
       })
     )
   }, [dispatch, role])
 
-  const store = useSelector<RootState, RootState['doc']>(state => state.doc)
-  const doc: Docu[] | null = store.dataSend
+  const store = useSelector((state: RootState) => state.doc)
 
-  console.log(store)
-  //console.log(doc)
-  //const longitud = store.dataSend.length
+  //console.log(store)
 
   //console.log(apiData)
 
@@ -407,16 +402,23 @@ const DocList = () => {
     setValue(val)
   }, [])
 
-  const toggleAddDocDrawer = () => setAddDocOpen(!addDocOpen)
+  const toggleAddDocDrawer = () => setAddUserOpen(!addDocOpen)
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddDocDrawer} />
-        {sendFileOpen && (
-          <SendFile
-            open={sendFileOpen}
-            toggle={() => setSendFileOpen(false)} // Función para cerrar SendFile
+        {SendFileWorkflowOpen && (
+          <SendFileWorkflow
+            open={SendFileWorkflowOpen}
+            toggle={() => setSendFileWorkflowOpen(false)} // Función para cerrar SendFileWorkflow
+            docId={selectedDocId} // Pasa el ID del documento seleccionado
+          />
+        )}
+        {SendFileUserOpen && (
+          <SendFileUser
+            open={SendFileUserOpen}
+            toggle={() => setSendFileUserOpen(false)} // Función para cerrar SendFileWorkflow
             docId={selectedDocId} // Pasa el ID del documento seleccionado
           />
         )}
@@ -424,7 +426,7 @@ const DocList = () => {
           <DataGrid
             getRowId={row => row._id}
             autoHeight
-            rows={store.dataSend}
+            rows={store.data}
             columns={columns}
             pageSize={pageSize}
             disableSelectionOnClick
@@ -434,7 +436,6 @@ const DocList = () => {
           />
         </Card>
       </Grid>
-
       <AddDocDrawer open={addDocOpen} toggle={toggleAddDocDrawer} />
     </Grid>
   )
