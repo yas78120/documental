@@ -16,6 +16,7 @@ import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import Input from '@mui/material/Input'
 import { useDropzone } from 'react-dropzone'
+import Swal from 'sweetalert2'
 
 // ** Third Party Imports
 import * as yup from 'yup'
@@ -207,8 +208,8 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       if (oficinas && oficinas.length > 0) {
         const oficinaActual = paso.oficinaActual
         const ultimaOficina = oficinas[oficinas.length - 1].idOffice
-        console.log(oficinaActual)
-        console.log(ultimaOficina)
+        //console.log(oficinaActual)
+        //console.log(ultimaOficina)
 
         if (oficinaActual !== ultimaOficina) {
           for (let j = 0; j < oficinas.length - 1; j++) {
@@ -217,7 +218,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 console.log('ultima oficina')
                 break
               } else {
-                console.log(oficinas[j].paso)
+                //console.log(oficinas[j].paso)
                 a = oficinas[j + 1].idOffice
               }
               a = oficinas[j + 1].idOffice
@@ -251,7 +252,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   }
 
   const usersUnity = userList.filter(userList => userList.unity === unityUser?.name)
-  console.log(usersUnity)
+  //console.log(unityUser)
 
   const [workflow, setWorkflow] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -267,6 +268,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     const newValue = Array.isArray(event.target.value) ? event.target.value : [event.target.value]
 
     setSelectedUsers(newValue)
+    setMenuOpen(false)
   }
 
   const handleSubmit = () => {
@@ -278,11 +280,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     //console.log(data)
 
     dispatch(DeriveDoc({ docId, data }))
-
-    toast.success('Documento enviado con éxito', {
-      position: toast.POSITION.TOP_RIGHT,
-      autoClose: 3000 // Duración de la notificación en milisegundos (3 segundos en este caso)
-    })
 
     /*
     axios
@@ -352,11 +349,22 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors.workflowName.message}</FormHelperText>
             )}
             </FormControl>*/}
-
+          <div style={{ fontSize: '12px', marginBottom: '12px' }}>
+            <span style={{ fontWeight: 'normal' }}>Oficina destino: </span>
+            <span style={{ fontWeight: 'bold' }}>{unityUser?.name}</span>
+          </div>
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel>Destino</InputLabel>
+            <InputLabel>Usuario de destino</InputLabel>
 
-            <Select multiple value={selectedUsers} onChange={handleUserSelect} label='Destino'>
+            <Select
+              multiple
+              value={selectedUsers}
+              onChange={handleUserSelect}
+              label='Usuario de destino'
+              open={menuOpen} // Controla la apertura/cierre del menú
+              onClose={() => setMenuOpen(false)} // Cierra el menú cuando se hace clic fuera de él
+              onOpen={() => setMenuOpen(true)} // Abre el menú cuando se hace clic en él
+            >
               {usersUnity.map(user => (
                 <MenuItem key={user._id} value={user.ci}>
                   {user.name}

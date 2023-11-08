@@ -12,16 +12,17 @@ const FooterContent = () => {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
       <Typography sx={{ mr: 2 }}>
-        {`© ${new Date().getFullYear()}, Made with `}
+        {`© ${new Date().getFullYear()}, Hecho con `}
         <Box component='span' sx={{ color: 'error.main' }}>
           ❤️
         </Box>
-        {` by `}
+        {` por `}
         <Link target='_blank' href='https://pixinvent.com/'>
-          Pixinvent
+          Oliver
         </Link>
       </Typography>
-      {hidden ? null : (
+
+      {/*hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
           <Link target='_blank' href='https://themeforest.net/licenses/standard'>
             License
@@ -39,7 +40,7 @@ const FooterContent = () => {
             Support
           </Link>
         </Box>
-      )}
+      )*/}
     </Box>
   )
 }

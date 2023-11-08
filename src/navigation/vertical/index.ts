@@ -3,46 +3,26 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { VerticalNavItemsType } from 'src/@core/layouts/types'
 import { AppDispatch, RootState } from 'src/store'
-import { fetchData, fetchDataRecib, fetchDataSend } from 'src/store/apps/doc'
+/*import {
+  fetchData,
+  fetchDataObserved,
+  fetchDataRecib,
+  fetchDataRecibWorkflow,
+  fetchDataSend,
+  fetchDataSendWorkflow
+} from 'src/store/apps/doc'*/
 
 const navigation = (): VerticalNavItemsType => {
   const dispatch = useDispatch<AppDispatch>()
   const [role, setRole] = useState<string>('')
 
-  useEffect(() => {
-    const promises = [
-      dispatch(fetchData({ role })),
-      dispatch(fetchDataSend({ role })),
-      dispatch(fetchDataRecib({ role }))
-    ]
-
-    Promise.all(promises)
-      .then(results => {
-        console.log('Todas las llamadas se completaron:', results)
-      })
-      .catch(error => {
-        console.error('Ocurrió un error:', error)
-      })
-  }, [dispatch, role])
-
-  const store = useSelector((state: RootState) => state.doc)
-
-  const longPersonales = store.data.length
-  const longEnviados = store.dataSend.length
-  const longRecibidos = store.dataRecib.length
-
   return [
     {
-      title: 'Hogar',
+      title: `Home `,
       path: '/home',
       icon: 'mdi:home-outline'
     },
 
-    {
-      title: 'Mensajes',
-      path: '/acl',
-      icon: 'mdi:email-outline'
-    },
     /*
     {
       title: 'Activos',
@@ -61,23 +41,6 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
     {
-      title: 'Proveedores',
-      icon: 'mdi:account-outline',
-      children: [
-        {
-          title: 'Nuevo Proveedor',
-          path: '/proveedores/getprovider',
-          icon: 'mdi:account-check'
-        }
-      ]
-    },
-    {
-      title: 'Imagen',
-      path: '/user/usuario/base64/base64',
-      icon: 'mdi:account-box-multiple'
-    },
-    */
-    {
       title: 'Documentos',
       icon: 'mdi:file-document-outline',
       children: [
@@ -93,24 +56,84 @@ const navigation = (): VerticalNavItemsType => {
         {
           title: `Recibidos (${longRecibidos})`,
           path: 'documents/recibidos'
+        },
+        {
+          title: `Observados (${longObservados})`,
+          path: 'documents/observados'
         }
-        /*
         {
           title: 'Enviar',
           path: 'documents/enviar'
           //icon: 'mdi:form-select'
-        }*/
+        }
       ]
+    },*/
+    {
+      title: 'Editor de texto',
+      path: '/textEditor',
+      icon: 'mdi:text-box-edit-outline'
+    },
+    {
+      title: `Borrador`,
+      path: '/documents/enviar',
+      icon: 'mdi:form-select'
+    },
+    {
+      title: `Enviados`,
+      path: '/documents/enviados',
+      icon: 'mdi:send-outline'
+    },
+    {
+      title: `Recibidos `,
+      path: '/documents/recibidos',
+      icon: 'mdi:file-document-check-outline'
+    },
+    {
+      title: `Observados`,
+      path: '/documents/observados',
+      icon: 'mdi:alert-octagon-outline'
     },
     {
       title: 'Eliminados',
       path: '/documents/inactives',
-      icon: 'mdi:file-document-outline'
+      icon: 'mdi:delete-outline'
     },
     {
       title: 'Flujo de trabajo',
-      path: '/flujo-trabajo',
-      icon: 'mdi:file-document-outline'
+      icon: 'mdi:file-document-outline',
+      children: [
+        {
+          title: `Crear`,
+          path: '/flujo-trabajo'
+        },
+        {
+          title: `Lista`,
+          path: '/flujo-trabajo/table'
+          //icon: 'mdi:form-select'
+        }
+        /*
+        {
+          title: `Lista2`,
+          path: '/flujo-trabajo/table2'
+          //icon: 'mdi:form-select'
+        }*/
+      ]
+    },
+    /*
+    {
+      title: 'Plantilas',
+      path: '/template',
+      icon: 'mdi:file-document'
+    },
+    {
+      title: 'Multiple',
+      path: '/documents/multiple',
+      icon: 'mdi:file-document'
+    },*/
+    {
+      title: 'Multiple',
+      path: '/multiple',
+      icon: 'mdi:file-document'
     }
   ]
 }

@@ -98,6 +98,7 @@ const AuthProvider = ({ children }: Props) => {
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     localStorage.removeItem('token')
     window.location.href = 'http://localhost:3000/login'
+    //window.location.href = 'http://10.10.214.225:3000/login'
 
     //router.push('/login')
   }

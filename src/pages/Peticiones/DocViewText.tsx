@@ -17,6 +17,8 @@ import { Document, Page } from 'react-pdf'
 import DocViewer from 'react-doc-viewer'
 import TextEditorDraft from './TextEditorDraft'
 import WordDocumentViewer from './WordDocumentViewer'
+import { FaEdit } from 'react-icons/fa'
+import EditorText from './EditorText'
 
 interface ColorsType {
   [key: string]: ThemeColor
@@ -71,6 +73,10 @@ const Sub = styled('sub')({
   fontSize: '1rem',
   alignSelf: 'flex-end'
 })
+interface Base64 {
+  idDocument: string
+  fileBase64: string
+}
 
 const StyledDocumentViewer = styled(DocumentViewer)({
   marginTop: '1rem'
@@ -78,6 +84,7 @@ const StyledDocumentViewer = styled(DocumentViewer)({
 
 const DocViewLeft = (props: { docId: string }) => {
   const docId = props.docId
+  //console.log(docId)
 
   const [doc, setDoc] = useState<Docu | null>(null)
   const [openEdit, setOpenEdit] = useState<boolean>(false)
@@ -86,33 +93,22 @@ const DocViewLeft = (props: { docId: string }) => {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false)
   const [state, setState] = useState<boolean>(false)
 
-  const getData = async () => {
-    try {
-      const response = await axios.get<Docu>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
-      //console.log(response.data)
-      // Extraer los campos necesarios de la respuesta
-      const { _id, numberDocument, title, fileRegister, fileBase64, documentationType, description } = response.data
-      // Crear un nuevo objeto con los campos extraídos
-      const extractedDoc: Docu = {
-        _id,
-        numberDocument,
-        fileBase64,
-        title,
-        fileRegister,
-        documentationType,
-        description
+  const [base64File, setBase64File] = React.useState<Base64 | null>(null)
+
+  const fetchBase64File = async () => {
+    if (docId) {
+      try {
+        const response = await axios.get<Base64>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}get-base64-document/${docId}`)
+        console.log(response.data)
+        setBase64File(response.data)
+      } catch (error) {
+        console.error(error)
       }
-      setDoc(extractedDoc)
-      console.log(extractedDoc)
-    } catch (error) {
-      console.error(error)
     }
   }
 
   useEffect(() => {
-    if (docId) {
-      getData()
-    }
+    fetchBase64File()
   }, [docId])
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -134,12 +130,12 @@ const DocViewLeft = (props: { docId: string }) => {
 
   const handlePlansClickOpen = () => setOpenPlans(true)
   const handlePlansClose = () => setOpenPlans(false)
-  if (doc) {
+  if (base64File) {
     return (
       <>
         <div onClick={toggleDrawer(true)}>
-          <Icon icon='mdi:eye-outline' fontSize={20} onClick={toggleDrawer(true)} />
-          Ver Texto
+          <FaEdit />
+          Editor de Texto
         </div>
         <Dialog
           open={state}
@@ -164,11 +160,9 @@ const DocViewLeft = (props: { docId: string }) => {
             </IconButton>
           </DialogTitle>
 
-          {doc.fileRegister && doc.fileRegister.extension === 'plain' && (
-            <div style={{ width: '100%', height: '600px', overflow: 'scroll' }}>
-              <TextEditorDraft base64={doc.fileBase64} />
-            </div>
-          )}
+          <div style={{ width: '100%', height: '600px', overflow: 'scroll' }}>
+            <TextEditorDraft base64={base64File.fileBase64} />
+          </div>
         </Dialog>
       </>
     )

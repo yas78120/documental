@@ -17,6 +17,7 @@ function WordDocumentViewer({ base64 }: WordDocumentViewerProps) {
 
   console.log(base64)
   const handleConvert = async () => {
+    /*
     if (base64) {
       // Decodifica el contenido base64 en un ArrayBuffer
       const binaryString = window.atob(base64)
@@ -31,7 +32,7 @@ function WordDocumentViewer({ base64 }: WordDocumentViewerProps) {
 
       // Actualiza el estado con el contenido HTML resultante
       setHtmlContent(result.value)
-    }
+    }*/
   }
 
   return (

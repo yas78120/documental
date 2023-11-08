@@ -46,7 +46,12 @@ interface docData {
   title: string
   documentTypeName: string
   description: string
-  file: string
+  file: string[]
+}
+interface docData2 {
+  title: string
+  documentTypeName: string
+  description: string
 }
 
 interface workflowName {
@@ -126,7 +131,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     try {
       const response = await axios.get<docType[]>(`${process.env.NEXT_PUBLIC_DOCUMENTATION_TYPE}active`)
 
-      //console.log(response.data)
+      console.log(response.data)
       setgroupTypes(response.data)
     } catch (error) {
       console.error(error)
@@ -186,12 +191,15 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 
   const [selectedValues, setSelectedValues] = useState<string[]>([])
 */
-
+  const [view, setView] = useState<string>('EN ESPERA')
+  const [active, setActive] = useState<boolean>(true)
+  const [page, setPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
   const [selectedValues2, setSelectedValues2] = useState<string>('')
 
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File | null>(null)
   const onDrop = (acceptedFiles: File[]) => {
-    setFile(acceptedFiles[0])
+    setFiles(acceptedFiles[0])
   }
 
   const convertFileToBase64 = (file: File) =>
@@ -205,13 +213,13 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     })
 
   const onSubmit = async (data: docData) => {
-    console.log(data)
-    if (file) {
-      const base64File = await convertFileToBase64(file)
-      data.file = base64File as string
+    if (files) {
+      const base64Files = await convertFileToBase64(files)
+      data.file = [base64Files as string] // Debes reemplazar el array en lugar de hacer push
     }
+    console.log(data)
 
-    dispatch(addDoc({ ...data }))
+    dispatch(addDoc({ ...data, view }))
     reset()
     toggle()
   }
@@ -319,12 +327,12 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               <input {...getInputProps()} />
               <Button variant='outlined'>Seleccionar archivo</Button>
             </div>
-            {file && <p>{file.name}</p>}
+            {files && <p>{files.name}</p>}
           </FormControl>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
-              Enviar
+              Agregar
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
               Cancelar

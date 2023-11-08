@@ -60,7 +60,7 @@ interface Docu {
     category: string
     extension: string
   }
-  documentType: string
+  documentationType: string
   stateDocument: string
   description: string
   createdAt?: Date | null
@@ -124,7 +124,7 @@ const DocViewLeft = (props: { docId: string }) => {
       category: '',
       extension: ''
     },
-    documentType: '',
+    documentationType: '',
     stateDocument: '',
     description: '',
     createdAt: null,
@@ -180,7 +180,7 @@ const DocViewLeft = (props: { docId: string }) => {
       <>
         <div onClick={toggleDrawer(true)}>
           <Icon icon='mdi:eye-outline' fontSize={20} />
-          Ver
+          Ver datos
         </div>
         <Dialog
           open={state}
@@ -233,7 +233,7 @@ const DocViewLeft = (props: { docId: string }) => {
               </Box>
               <Box sx={{ display: 'flex', mb: 2.7 }}>
                 <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Tipo de documento:</Typography>
-                <Typography variant='body2'>{doc.documentType}</Typography>
+                <Typography variant='body2'>{doc.documentationType}</Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 2.7 }}>
                 <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '0.875rem' }}>Descripcion:</Typography>

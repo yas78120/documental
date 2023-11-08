@@ -3,7 +3,7 @@ import React, { FormEvent, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Button from '@mui/material/Button'
 import MenuItem from '@mui/material/MenuItem'
 import { styled } from '@mui/material/styles'
@@ -18,7 +18,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 // ** Third Party Imports
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, ControllerRenderProps, FieldValues } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -27,27 +27,39 @@ import Icon from 'src/@core/components/icon'
 import { useDispatch } from 'react-redux'
 
 // ** Actions Imports
-import { addDoc, fetchData } from 'src/store/apps/doc'
+import { addDoc, docType, fetchData } from 'src/store/apps/doc'
 
 // ** Types Imports
 import { AppDispatch } from 'src/store'
 import { Direction } from '@mui/material'
 import axios from 'axios'
-import { useRouter } from 'next/router'
+//import { useRouter } from 'next/router'
 import doc from 'src/store/apps/doc'
 import { useDropzone } from 'react-dropzone'
+import { FaEdit } from 'react-icons/fa'
+
+interface docDataEdit {
+  title: string
+  description: string
+  file: string
+  documentationType: string
+}
 
 interface docData {
   numberDocument: string
   title: string
-  ciPersonal: string
-  documentType: string
-  stateDocument: string
-  documentDestinations: string
   description: string
   file: string
+  documentationType: {
+    typeName: string
+  }
+  documentType: string
 }
-
+interface docType {
+  _id: string
+  typeName: string
+}
+;[]
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -60,9 +72,8 @@ const schema = yup.object().shape({
   title: yup.string().required(),
   ciPersonal: yup.string().required(),
   digitalUbication: yup.string().required(),
-  documentType: yup.string().required(),
+  documentTypeName: yup.string().required(),
   stateDocument: yup.string().required(),
-  documentDestinations: yup.string().required(),
   description: yup.string().required(),
   file: yup.string().required()
 })
@@ -72,17 +83,24 @@ const SidebarEditUser = (props: { docId: string }) => {
   //console.log(props)
   const docId = props.docId
   //console.log(docId)
-
-  const [doc, setDoc] = useState<docData>({
+  const [doc, setDoc] = React.useState<docData>({
     numberDocument: '',
     title: '',
-    ciPersonal: '',
-    documentType: '',
-    stateDocument: '',
-    documentDestinations: '',
     description: '',
-    file: ''
+    file: '',
+    documentationType: {
+      typeName: ''
+    },
+    documentType: ''
   })
+
+  const [docData, setDocData] = React.useState<docDataEdit>({
+    title: '',
+    description: '',
+    file: '',
+    documentationType: ''
+  })
+  const [documentTypes, setDocumentTypes] = useState<docType[]>([])
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (
@@ -104,24 +122,34 @@ const SidebarEditUser = (props: { docId: string }) => {
     resolver: yupResolver(schema)
   })
 
-  const getData = async () => {
-    //console.log(docId)
-    await axios
-      .get<docData>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
-      .then(response => {
-        setDoc(response.data)
-        console.log(response)
-      })
-      .catch(error => {
-        console.error(error)
-      })
+  const getDocId = async () => {
+    try {
+      const response = await axios.get<docData>(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}`)
+      setDoc(response.data) // Establecer el objeto docu directamente
+
+      //console.log(response.data)
+    } catch (error) {
+      console.error('Error al obtener el documento', error)
+    }
+  }
+  useEffect(() => {
+    if (docId) {
+      getDocId()
+    }
+  }, [docId])
+
+  const fetchDocumentTypes = async () => {
+    try {
+      const response = await axios.get<docType[]>(`${process.env.NEXT_PUBLIC_DOCUMENTATION_TYPE}active`)
+      setDocumentTypes(response.data)
+    } catch (error) {
+      console.error('Error al obtener tipos de documento:', error)
+    }
   }
 
   useEffect(() => {
-    if (docId) {
-      getData()
-    }
-  }, [docId])
+    fetchDocumentTypes()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDoc({ ...doc, [e.target.name]: e.target.value })
@@ -143,6 +171,8 @@ const SidebarEditUser = (props: { docId: string }) => {
       reader.readAsDataURL(file)
     })
 
+  const [file, setFile] = useState<File | null>(null)
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
@@ -161,7 +191,6 @@ const SidebarEditUser = (props: { docId: string }) => {
       console.error(error)
     }
   }
-  const [file, setFile] = useState<File | null>(null)
   const onDrop = (acceptedFiles: File[]) => {
     setFile(acceptedFiles[0])
   }
@@ -173,8 +202,7 @@ const SidebarEditUser = (props: { docId: string }) => {
   return (
     <>
       <div onClick={toggleDrawer(true)}>
-        <Icon icon='mdi:pencil-outline' fontSize={20} onClick={toggleDrawer(true)} />
-        Editar
+        <FaEdit size={22} />
       </div>
 
       <Drawer
@@ -184,7 +212,7 @@ const SidebarEditUser = (props: { docId: string }) => {
         anchor='right'
         variant='temporary'
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800 } } }}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 600 } } }}
       >
         <Header>
           <Typography variant='h6'>{doc.numberDocument}</Typography>
@@ -211,72 +239,57 @@ const SidebarEditUser = (props: { docId: string }) => {
                 )}
               />
             </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='ciPersonal'
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Author'
-                    onChange={handleChange}
-                    value={doc.ciPersonal}
-                    error={Boolean(errors.ciPersonal)}
-                    autoComplete='off'
-                  />
-                )}
-              />
-            </FormControl>
 
-            <FormControl fullWidth sx={{ mb: 4 }}>
+            {/*  <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
-                name='documentType'
+                name='documentationType'
                 control={control}
                 rules={{ required: false }}
+                // defaultValue={doc.documentationType.typeName}
                 render={({ field }) => (
-                  <TextField
+                  <Select
                     {...field}
-                    label='Extension'
-                    value={doc.documentType}
-                    onChange={handleChange}
+                    label='Tipo de documento'
+                    // value={doc.documentationType.typeName}
+                    onChange={(e: SelectChangeEvent<string>) => {
+                      setDoc({ ...doc, documentType: e.target.value })
+                    }}
                     error={Boolean(errors.documentType)}
                     autoComplete='off'
-                  />
+                  >
+                    {documentTypes.map(type => (
+                      <MenuItem key={type._id} value={type.typeName}>
+                        {type.typeName}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 )}
               />
             </FormControl>
+                    */}
             <FormControl fullWidth sx={{ mb: 4 }}>
               <Controller
-                name='stateDocument'
+                name='documentationType'
                 control={control}
                 rules={{ required: false }}
+                defaultValue={doc.documentationType.typeName} // Proporciona un valor inicial aquí
                 render={({ field }) => (
-                  <TextField
+                  <Select
                     {...field}
-                    label='Estado'
-                    value={doc.stateDocument}
-                    onChange={handleChange}
-                    error={Boolean(errors.stateDocument)}
+                    label='Tipo de documento'
+                    onChange={(e: SelectChangeEvent<string>) => {
+                      // Actualiza el valor del campo controlado en lugar del documento directamente
+                      field.onChange(e.target.value)
+                    }}
+                    error={Boolean(errors.documentationType)}
                     autoComplete='off'
-                  />
-                )}
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='documentDestinations'
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Nivel de acceso'
-                    onChange={handleChange}
-                    value={doc.documentDestinations}
-                    error={Boolean(errors.documentDestinations)}
-                    autoComplete='off'
-                  />
+                  >
+                    {documentTypes.map(type => (
+                      <MenuItem key={type._id} value={type.typeName}>
+                        {type.typeName}
+                      </MenuItem>
+                    ))}
+                  </Select>
                 )}
               />
             </FormControl>

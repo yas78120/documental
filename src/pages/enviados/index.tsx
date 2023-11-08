@@ -2,7 +2,6 @@
 import { useState, useEffect, MouseEvent, useCallback, Dispatch } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
 import { GetStaticProps, InferGetStaticPropsType } from 'next/types'
 
 // ** MUI Imports
@@ -26,7 +25,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 
 // ** Actions Imports
 //import { deleteDoc } from 'src/store/apps/Doc'
-import Doc, { deleteDoc, fetchData, fetchDataSend } from 'src/store/apps/doc'
+import Doc, { deleteDoc, fetchData, fetchDataSendWorkflow } from 'src/store/apps/doc'
 
 // ** Third Party Components
 import axios from 'axios'
@@ -42,13 +41,14 @@ import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import Base64FileViewer from 'src/pages/Peticiones/Base64FileViewer'
-import DocViewText from '../Peticiones/DocViewText'
-import AddForkflow from '../Peticiones/AddForkflow'
-import AddStep from '../Peticiones/AddStep'
-import SendFile from '../Peticiones/SendFileWorkflow'
+import Base64FileViewer from 'src/pages/Peticiones/Base64FileDownload'
+import DocViewText from 'src/pages/Peticiones/DocViewText'
+import AddForkflow from 'src/pages/Peticiones/AddForkflow'
+import AddStep from 'src/pages/Peticiones/AddStep'
+import SendFile from 'src/pages/Peticiones/SendFileWorkflow'
 import React from 'react'
-import Base64 from '../Peticiones/Base64'
+import Base64 from 'src/pages/Peticiones/Base64View'
+import Base64Download from 'src/pages/Peticiones/Base64Download'
 
 interface Docu {
   _id: string
@@ -88,7 +88,8 @@ interface Docu {
     name: string
     unity: string
   }
-  stateDocumentWorkflow: string
+  stateDocumentUserSend: string
+  stateDocumetUser: string
   base64Template: string
   fileBase64: string
   stateDocument: string
@@ -165,10 +166,6 @@ const RowOptions = ({ id }: { id: string }) => {
       >
         <MenuItem sx={{ '& svg': { mr: 2 } }} onClick={handleRowOptionsClose}>
           <DocViewLeft docId={selectedId} />
-        </MenuItem>
-
-        <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-          <EditDocDrawer docId={selectedId} />
         </MenuItem>
         <MenuItem onClick={handleDeleteConfirmation} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
@@ -275,7 +272,7 @@ const DocList = () => {
         )
       }
     },
-
+    /*
     {
       flex: 0.2,
       minWidth: 140,
@@ -290,26 +287,27 @@ const DocList = () => {
           </Box>
         )
       }
-    },
+    },*/
 
     {
       flex: 0.15,
       minWidth: 120,
       headerName: 'Estado',
-      field: 'stateDocumentWorkflow',
+      field: 'stateDocumentUserSend',
       renderCell: ({ row }: CellType) => {
         return (
           <CustomChip
             skin='light'
             size='small'
-            label={row.stateDocumentWorkflow}
-            color={docStatusObj[row.stateDocumentWorkflow]}
+            label={row.stateDocumentUserSend}
+            color={docStatusObj[row.stateDocumentUserSend]}
             sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
           />
         )
       }
     },
 
+    /*
     {
       flex: 0.15,
       minWidth: 140,
@@ -317,7 +315,8 @@ const DocList = () => {
       field: 'bitacoraWorkflow',
       renderCell: ({ row }: CellType) => {
         if (Array.isArray(row.bitacoraWorkflow) && row.bitacoraWorkflow.length > 0) {
-          const firstBitacora = row.bitacoraWorkflow[0]
+          const of = row.bitacoraWorkflow.length
+          const firstBitacora = row.bitacoraWorkflow[of - 1]
           if (firstBitacora?.nameOficinaActual) {
             return (
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -332,26 +331,27 @@ const DocList = () => {
         return null
       }
     },
+    /*
     {
       field: 'action', // O el nombre que desees
       headerName: 'Enviar', // O el título que desees
       flex: 0.01,
-      minWidth: 80,
+      minWidth: 110,
       renderCell: ({ row }: CellType) => (
-        <Button variant='contained' color='primary' onClick={() => handleSendButtonClick(row._id)}>
-          Enviar
+        <Button variant='outlined' color='primary' onClick={() => handleSendButtonClick(row._id)}>
+          Reenviar
         </Button>
       )
-    },
+    },*/
 
     {
       field: 'viewDocument',
       headerName: 'Ver',
       flex: 0.01,
-      minWidth: 60,
+      minWidth: 55,
       renderCell: ({ row }: CellType) => {
         if (row.fileRegister) {
-          return <Base64 base64={row.fileBase64} />
+          return <Base64 id={row._id} />
         } else {
           return <div>No hay archivo adjunto</div>
         }
@@ -362,12 +362,12 @@ const DocList = () => {
       field: 'fileBase64',
       headerName: '',
       flex: 0.01,
-      minWidth: 80,
+      minWidth: 70,
       renderCell: ({ row }) => {
         // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
 
         if (row.fileRegister) {
-          return <Base64FileViewer base64={row.fileBase64} />
+          return <Base64Download id={row._id} fileName={row.title} />
         } else {
           return <div>No hay archivo adjunto</div>
         }
@@ -384,20 +384,27 @@ const DocList = () => {
   const [addDocOpen, setAddDocOpen] = useState<boolean>(false)
 
   // ** Hooks
+  const [typeName, setTypeName] = useState<string>('')
+  const [view, setView] = useState<string>('ENVIADOS')
+  const [active, setActive] = useState<boolean>(true)
+  const [page, setPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
     dispatch(
-      fetchDataSend({
-        role
+      fetchData({
+        view,
+        active,
+        page,
+        limit,
+        typeName
       })
     )
-  }, [dispatch, role])
+  }, [dispatch, view, active, page, limit, typeName])
 
-  const store = useSelector<RootState, RootState['doc']>(state => state.doc)
-  const doc: Docu[] | null = store.dataSend
+  const store = useSelector((state: RootState) => state.doc)
 
-  console.log(store)
   //console.log(doc)
   //const longitud = store.dataSend.length
 
@@ -412,7 +419,6 @@ const DocList = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddDocDrawer} />
         {sendFileOpen && (
           <SendFile
             open={sendFileOpen}
@@ -424,7 +430,7 @@ const DocList = () => {
           <DataGrid
             getRowId={row => row._id}
             autoHeight
-            rows={store.dataSend}
+            rows={store.data}
             columns={columns}
             pageSize={pageSize}
             disableSelectionOnClick

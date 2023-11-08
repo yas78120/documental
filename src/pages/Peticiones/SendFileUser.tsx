@@ -127,13 +127,11 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const handleUnityChange = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
     const selectedUnityId = event.target.value
     setSelectedUnity(selectedUnityId)
-    console.log(selectedUnityId)
+    //console.log(selectedUnityId)
 
     // Filtrar la lista de usuarios para mostrar solo los que pertenecen a la unidad seleccionada
-    const filteredUsers = userList.filter(user => user.unity === selectedUnityId)
     //const selectedUsersIds = filteredUsers.map(user => user.name)
     //console.log(filteredUsers)
-    setUserList(filteredUsers)
     //console.log(selectedUsersIds)
   }
 
@@ -142,6 +140,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     setSelectedUsers(newValue)
     setOpenSelect(false)
   }
+
+  const userSelectOffice = userList.filter(userList => userList.unity === selectedUnity)
+  //console.log(userSelectOffice)
+
   const handleSubmit = () => {
     const data: docData = {
       ci: selectedUsers
@@ -179,7 +181,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       <Box sx={{ p: 5 }}>
         <form>
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel>Unidad</InputLabel>
+            <InputLabel>Seleccionar Unidad</InputLabel>
             <Select value={selectedUnity} onChange={handleUnityChange} label='Seleccionar Unidad'>
               {groupUnity.map(option => (
                 <MenuItem key={option._id} value={option.name}>
@@ -190,18 +192,18 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel>Destino</InputLabel>
+            <InputLabel>Seleccionar usuario de destino</InputLabel>
             <Select
               multiple
               value={selectedUsers}
               onChange={handleUserSelect}
-              label='Destino'
+              label='Seleccionar usuario de destino'
               open={openSelect} // Controla la apertura/cierre del menú
               onClose={() => setOpenSelect(false)} // Cierra el menú cuando se hace clic fuera de él
               onOpen={() => setOpenSelect(true)}
               disabled={!selectedUnity} // Deshabilitar la selección de usuarios si no se ha seleccionado una unidad
             >
-              {userList.map(user => (
+              {userSelectOffice.map(user => (
                 <MenuItem key={user._id} value={user.ci}>
                   {user.name}
                 </MenuItem>

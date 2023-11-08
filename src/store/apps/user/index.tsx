@@ -18,7 +18,7 @@ axios.interceptors.request.use(config => {
 export const fetchUser = createAsyncThunk('appUser/fetchUser', async () => {
   try {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_USER}`)
-    console.log(response)
+    //console.log(response)
     return response
   } catch (error) {
     throw error
@@ -36,6 +36,7 @@ export const appUserSlice = createSlice({
       rolUser: [],
       lastName: '',
       unity: '',
+      file: '',
       _id: ''
     }
   },

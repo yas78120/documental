@@ -49,7 +49,7 @@ const Sidebar = (props: BoxProps & SidebarType) => {
       {hideBackdrop ? null : (
         <Backdrop
           open={show}
-          transitionDuration={250}
+          transitionDuration={200}
           onClick={handleBackdropClick}
           sx={{ position: 'absolute', zIndex: theme => theme.zIndex.drawer - 1 }}
         />

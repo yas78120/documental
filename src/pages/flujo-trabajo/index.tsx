@@ -42,11 +42,11 @@ import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import Base64FileViewer from 'src/pages/Peticiones/Base64FileViewer'
+import Base64FileDownload from 'src/pages/Peticiones/Base64FileDownload'
 import DocViewText from '../Peticiones/DocViewText'
 import AddForkflow from '../Peticiones/AddForkflow'
 import AddStep from '../Peticiones/AddStep'
-
+import { fetchWorkflow } from 'src/store/apps/workflow'
 interface Docu {
   _id: string
   numberDocument: string
@@ -88,10 +88,6 @@ const docStatusObj: DocStatusType = {
   REVISION: 'warning',
   OBSERVADO: 'primary'
 }
-
-const token =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZFVzZXIiOiI2NGU3Yzc4N2VlYzEyNmQ2Y2I1NDI5NmUiLCJBcHAiOnsiMCI6eyJ1dWlkIjoiZjE0MTQ0N2EtZGRmMC00OTJhLWE0ZGItOWQ4M2UzYjdiYTkwIiwibmFtZSI6Imdlc3Rpb24tZG9jdW1lbnRhbCIsInVybCI6Imh0dHA6Ly8xMC4xMC4yMTQuMTY3OjMzMDAvaG9tZSJ9fSwicm9sZXMiOlsiNjRlNTA2NmM5OTNjYmI0ZDBhODUzM2NkIiwiNjRlNjU4OTQxNmE0Yjg4NGM2ZDg5NTVkIl0sImlhdCI6MTY5MzQ5MjI5NywiZXhwIjoxNjkzNTA2Njk3fQ.Y5ZGrgRDpeSHItVHZYisFRnF24HQ3SUzOzojhec7Y2I'
-console.log(token)
 
 const RowOptions = ({ id }: { id: string }) => {
   const dispatch = useDispatch<AppDispatch>()
@@ -290,7 +286,7 @@ const columns: GridColDef[] = [
       // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
 
       if (row.fileRegister) {
-        return <Base64FileViewer base64={row.fileBase64} />
+        return <Base64FileDownload fileName={row.fileBase64} id={row._id} />
       } else {
         return <div>No hay archivo adjunto</div>
       }
@@ -311,15 +307,11 @@ const DocList = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
-    dispatch(
-      fetchData({
-        role
-      })
-    )
-  }, [dispatch, role])
+    dispatch(fetchWorkflow())
+  }, [dispatch])
 
-  const store = useSelector((state: RootState) => state.doc)
-  console.log(store)
+  const store = useSelector((state: RootState) => state.workflow)
+  console.log(store.workflow)
   //console.log(apiData)
 
   const handleFilter = useCallback((val: string) => {
@@ -334,9 +326,9 @@ const DocList = () => {
         <Card>
           <AddForkflow />
         </Card>
-        <Card>
-          <AddStep />
-        </Card>
+      </Grid>
+      <Grid item xs={12}>
+        <Card></Card>
       </Grid>
 
       <AddDocDrawer open={addDocOpen} toggle={toggleAddDocDrawer} />

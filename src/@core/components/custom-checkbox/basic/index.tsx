@@ -9,7 +9,7 @@ import { CustomCheckboxBasicProps } from 'src/@core/components/custom-checkbox/t
 
 const CustomCheckbox = (props: CustomCheckboxBasicProps) => {
   // ** Props
-  const { data, name, selected, gridProps, handleChange, color = 'primary' } = props
+  const { data, name, selected, gridProps, handleChange, color = 'info' } = props
 
   const { meta, title, value, content } = data
 

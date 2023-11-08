@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+/*import React, { useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import axios from 'axios'
@@ -68,6 +68,7 @@ const CreateStepComponent = () => {
     })
   }
 
+  //
   const handleAddPaso = () => {
     if (stepData.pasos.length < 10) {
       setStepData({
@@ -90,7 +91,7 @@ const CreateStepComponent = () => {
       pasos: newPasos
     })
   }
-
+//
   const fetchStep = () => {
     axios
       .get(`${process.env.NEXT_PUBLIC_DOCUMENTAL_STEP}active`)
@@ -180,4 +181,4 @@ const CreateStepComponent = () => {
   )
 }
 
-export default CreateStepComponent
+export default CreateStepComponent*/

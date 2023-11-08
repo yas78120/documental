@@ -2,7 +2,6 @@
 import { useState, useEffect, MouseEvent, useCallback, Dispatch } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
 import { GetStaticProps, InferGetStaticPropsType } from 'next/types'
 
 // ** MUI Imports
@@ -17,6 +16,7 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import WebSocketClient from 'websocket'
 
 // ** Store Imports
 import { useDispatch, useSelector } from 'react-redux'
@@ -41,16 +41,20 @@ import TableHeader from 'src/pages/Peticiones/TableHeader'
 import SendFileWorkflow from 'src/pages/Peticiones/SendFileWorkflow'
 import EditDocDrawer from 'src/pages/Peticiones/EditDocDrawer'
 import DocViewLeft from 'src/pages/Peticiones/DocViewLeft'
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import Base64FileViewer from 'src/pages/Peticiones/Base64FileViewer'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Tooltip } from '@mui/material'
+import Base64FileDownload from 'src/pages/Peticiones/Base64FileDownload'
 import DocViewText from 'src/pages/Peticiones/DocViewText'
 import AddForkflow from 'src/pages/Peticiones/AddForkflow'
 import AddStep from 'src/pages/Peticiones/AddStep'
 import AddDocDrawer from 'src/pages/Peticiones/AddDocDrawer'
+import AddCredenciales from 'src/pages/Peticiones/AddCredenciales'
 import { fetchUser } from 'src/store/apps/user'
 import SendFileUser from '../Peticiones/SendFileUser'
-import { FaEye, FaPaperPlane } from 'react-icons/fa'
-import Base64 from '../Peticiones/Base64'
+import { FaEdit, FaEye, FaPaperPlane, FaRegTrashAlt } from 'react-icons/fa'
+import Base64 from '../Peticiones/Base64View'
+import OptionsMenu from 'src/@core/components/option-menu'
+import DigitalSignature from '../Peticiones/DigitalSignature'
+//import { SocketIO } from 'src/pages/Peticiones/SocketIO'
 
 interface Docu {
   _id: string
@@ -94,7 +98,7 @@ const docStatusObj: DocStatusType = {
   OBSERVADO: 'primary'
 }
 
-const RowOptions = ({ id }: { id: string }) => {
+const RowOptions = ({ id, title }: { id: string; title: string }) => {
   const dispatch = useDispatch<AppDispatch>()
 
   const [selectedId, setSelectedId] = useState<string>('')
@@ -109,14 +113,6 @@ const RowOptions = ({ id }: { id: string }) => {
   }
   const handleRowOptionsClose = () => {
     setAnchorEl(null)
-  }
-
-  const handleDeleteConfirmation = () => {
-    setShowConfirmation(true)
-  }
-
-  const handleDeleteCancel = () => {
-    setShowConfirmation(false)
   }
 
   const handleDelete = () => {
@@ -149,34 +145,21 @@ const RowOptions = ({ id }: { id: string }) => {
         </MenuItem>
 
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-          <EditDocDrawer docId={selectedId} />
+          <Base64FileDownload id={selectedId} fileName={title} />
         </MenuItem>
-        <MenuItem onClick={handleDeleteConfirmation} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='mdi:delete-outline' fontSize={20} />
-          Eliminar
-        </MenuItem>
+
         <MenuItem sx={{ '& svg': { mr: 2 } }} onClick={handleRowOptionsClose}>
           <DocViewText docId={selectedId} />
         </MenuItem>
       </Menu>
-      {showConfirmation && (
-        <Dialog open={showConfirmation} onClose={handleDeleteCancel}>
-          <DialogTitle>Esta seguro de eliminar el archivo?</DialogTitle>
-
-          <DialogActions>
-            <Button onClick={handleDeleteCancel}>Cancelar</Button>
-            <Button onClick={handleDelete} autoFocus>
-              Eliminar
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
     </>
   )
 }
 const DocList = () => {
   const [SendFileUserOpen, setSendFileUserOpen] = useState(false)
   const [SendFileWorkflowOpen, setSendFileWorkflowOpen] = useState(false)
+  const [DigitalSignatureOpen, setDigitalSignatureOpen] = useState(false)
+
   const [selectedDocId, setSelectedDocId] = useState<string>('')
 
   const handleSendButtonClick = (docId: string) => {
@@ -205,14 +188,22 @@ const DocList = () => {
     }
   }
 
+  const handleDigitalButtonClick = (docId: string) => {
+    setSelectedDocId(docId) // Guarda el ID del documento seleccionado
+    setDigitalSignatureOpen(true)
+  }
+
+  const [showConfirmation, setShowConfirmation] = useState(false)
+
   const columns: GridColDef[] = [
     {
       flex: 0.07,
       minWidth: 60,
       field: 'actions',
       headerName: '',
-      renderCell: ({ row }: CellType) => <RowOptions id={row._id} />
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} title={row.title} />
     },
+
     {
       flex: 0.1,
       minWidth: 120,
@@ -255,8 +246,8 @@ const DocList = () => {
       }
     },
     {
-      flex: 0.2,
-      minWidth: 210,
+      flex: 0.1,
+      minWidth: 200,
       headerName: 'Descripcion',
       field: 'description',
       renderCell: ({ row }: CellType) => {
@@ -279,7 +270,7 @@ const DocList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 140,
+      minWidth: 120,
       headerName: 'Referencia',
       field: 'documentationType',
       renderCell: ({ row }: CellType) => {
@@ -290,30 +281,12 @@ const DocList = () => {
         )
       }
     },
-    /*
-    {
-      flex: 0.15,
-      minWidth: 120,
-      headerName: 'Estado',
-      field: 'stateDocument',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <CustomChip
-            skin='light'
-            size='small'
-            label={row.stateDocument}
-            color={docStatusObj[row.stateDocument]}
-            sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
-          />
-        )
-      }
-    },
-*/
+
     {
       field: 'action',
       headerName: 'Enviar',
       flex: 0.1,
-      minWidth: 110,
+      minWidth: 100,
       renderCell: ({ row }: CellType) => (
         <>
           <Button
@@ -336,25 +309,139 @@ const DocList = () => {
     },
 
     {
-      field: 'fileBase64',
-      headerName: 'Ar',
-      flex: 0.01,
-      minWidth: 60,
-      renderCell: ({ row }) => {
-        // Verificar si fileRegistrer está definido antes de acceder a la propiedad file
+      field: 'digitalSignature',
+      headerName: 'Firma Digital',
+      flex: 0.1,
+      minWidth: 110,
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Button variant='text' color='primary' onClick={() => handleDigitalButtonClick(row._id)}>
+            Firma Digital
+          </Button>
+        )
 
-        if (row.fileRegister) {
-          return <Base64FileViewer base64={row.fileBase64} />
-        } else {
-          return <div>No hay archivo adjunto</div>
+        {
+          /*else {
+          return
+             <Button variant='text' color='primary'>
+              Derivar
+          </Button>*/
         }
       }
     },
+    /*
+    {
+      flex: 0.15,
+      minWidth: 120,
+      headerName: 'Estado',
+      field: 'stateDocument',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <CustomChip
+            skin='light'
+            size='small'
+            label={row.stateDocument}
+            color={docStatusObj[row.stateDocument]}
+            sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+          />
+        )
+      }
+    },
+*/
+
+    {
+      flex: 0.01,
+      minWidth: 90,
+      sortable: false,
+      field: 'active',
+      headerName: 'active',
+      renderCell: ({ row }: CellType) => (
+        <Box sx={{ display: 'flex', alignItems: 'left' }}>
+          <Tooltip title='Ver'>
+            <IconButton size='small' sx={{ mr: 3 }}>
+              <Base64 id={row._id} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='Editar'>
+            <IconButton size='small' sx={{ mr: 0.5 }}>
+              <EditDocDrawer docId={row._id} />
+            </IconButton>
+          </Tooltip>
+          {/*
+          <Tooltip title='Eliminar documento'>
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => dispatch(deleteDoc(row._id))}>
+              <FaRegTrashAlt size={20} />
+            </IconButton>
+          </Tooltip>
+
+          <OptionsMenu
+            iconProps={{ fontSize: 20 }}
+            iconButtonProps={{ size: 'small' }}
+            menuProps={{ sx: { '& .MuiMenuItem-root svg': { mr: 2 } } }}
+            options={[
+              {
+                text: 'Download',
+                icon: <Icon icon='mdi:download' fontSize={20} />
+              },
+              {
+                text: 'Edit',
+                href: `/apps/invoice/edit/${row._id}`,
+                icon: <Icon icon='mdi:pencil-outline' fontSize={20} />
+              },
+              {
+                text: 'Duplicate',
+                icon: <Icon icon='mdi:content-copy' fontSize={20} />
+              }
+            ]}
+          />  */}
+        </Box>
+      )
+    },
+
+    {
+      field: 'eliminar',
+      headerName: '',
+      flex: 0.01,
+      minWidth: 70,
+      renderCell: ({ row }: CellType) => (
+        <>
+          <IconButton
+            color='primary'
+            onClick={() => {
+              setShowConfirmation(true)
+              setSelectedDocId(row._id) // Guarda el ID del documento seleccionado
+            }}
+          >
+            <FaRegTrashAlt size={20} /> {/* Aquí puedes usar el icono que desees */}
+          </IconButton>
+          <Dialog open={showConfirmation} onClose={() => setShowConfirmation(false)}>
+            <DialogTitle>Confirmar Eliminación</DialogTitle>
+            <DialogContent>¿Estás seguro de que deseas eliminar este documento?</DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowConfirmation(false)} color='primary'>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  // Eliminar el documento aquí
+                  dispatch(deleteDoc(selectedDocId))
+                  setShowConfirmation(false)
+                }}
+                color='primary'
+              >
+                Eliminar
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )
+    }
+    /*
     {
       field: 'viewDocument',
-      headerName: 'Ver Documento',
+      headerName: 'Ver',
       flex: 0.01,
-      minWidth: 80,
+      minWidth: 60,
       renderCell: ({ row }: CellType) => {
         if (row.fileRegister) {
           return <Base64 base64={row.fileBase64} />
@@ -362,7 +449,21 @@ const DocList = () => {
           return <div>No hay archivo adjunto</div>
         }
       }
-    }
+    },*/
+    /*
+    {
+      field: 'base64Template',
+      headerName: 'Template',
+      flex: 0.01,
+      minWidth: 80,
+      renderCell: ({ row }: CellType) => {
+        if (row.fileRegister) {
+          return <Base64 base64={row.base64Template} />
+        } else {
+          return <div>No hay archivo adjunto</div>
+        }
+      }
+    }*/
   ]
 
   // ** State
@@ -373,6 +474,7 @@ const DocList = () => {
   const [status, setStatus] = useState<string>('')
   const [pageSize, setPageSize] = useState<number>(10)
   const [addDocOpen, setAddUserOpen] = useState<boolean>(false)
+  const [addCredenciales, setAddCredenciales] = useState<boolean>(false)
 
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
@@ -383,14 +485,6 @@ const DocList = () => {
   const user = useSelector((state: RootState) => state.user.user)
   const roles: string[] = user.rolUser
   console.log(user)*/
-
-  useEffect(() => {
-    dispatch(
-      fetchData({
-        role
-      })
-    )
-  }, [dispatch, role])
 
   const store = useSelector((state: RootState) => state.doc)
 
@@ -403,11 +497,17 @@ const DocList = () => {
   }, [])
 
   const toggleAddDocDrawer = () => setAddUserOpen(!addDocOpen)
+  const toggleAddCredenciales = () => setAddCredenciales(!addCredenciales)
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddDocDrawer} />
+        <TableHeader
+          value={value}
+          handleFilter={handleFilter}
+          toggle={toggleAddDocDrawer}
+          toggle2={toggleAddCredenciales}
+        />
         {SendFileWorkflowOpen && (
           <SendFileWorkflow
             open={SendFileWorkflowOpen}
@@ -419,6 +519,13 @@ const DocList = () => {
           <SendFileUser
             open={SendFileUserOpen}
             toggle={() => setSendFileUserOpen(false)} // Función para cerrar SendFileWorkflow
+            docId={selectedDocId} // Pasa el ID del documento seleccionado
+          />
+        )}
+        {DigitalSignatureOpen && (
+          <DigitalSignature
+            open={DigitalSignatureOpen}
+            toggle={() => setDigitalSignatureOpen(false)} // Función para cerrar SendFileWorkflow
             docId={selectedDocId} // Pasa el ID del documento seleccionado
           />
         )}
@@ -437,6 +544,7 @@ const DocList = () => {
         </Card>
       </Grid>
       <AddDocDrawer open={addDocOpen} toggle={toggleAddDocDrawer} />
+      <AddCredenciales open={addCredenciales} toggle={toggleAddCredenciales} />
     </Grid>
   )
 }

@@ -285,7 +285,7 @@ const columns = [
     flex: 0.2,
     minWidth: 130,
     headerName: 'Referencia',
-    field: 'documentType',
+    field: 'documentationType',
     renderCell: ({ row }: CellType) => {
       return (
         <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
@@ -347,14 +347,6 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
 
-  useEffect(() => {
-    dispatch(
-      fetchData({
-        role
-      })
-    )
-  }, [dispatch, plan, role, status, value])
-
   const store = useSelector((state: RootState) => state.doc)
   console.log(store)
   //console.log(apiData)
@@ -369,7 +361,12 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
+          <TableHeader
+            value={value}
+            handleFilter={handleFilter}
+            toggle={toggleAddUserDrawer}
+            toggle2={toggleAddUserDrawer}
+          />
 
           <DataGrid
             getRowId={row => row._id}

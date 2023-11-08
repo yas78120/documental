@@ -52,6 +52,11 @@ interface docData {
 interface workflowName {
   _id: string
   nombre: string
+  pasos: {
+    _id: string
+    idOffice: string
+    oficina: string
+  }[]
 }
 
 interface ListUser {
@@ -110,7 +115,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   })
   const [groupworkflowName, setgroupworkflowName] = React.useState<workflowName[]>([])
   const [userList, setUserList] = React.useState<ListUser[]>([])
-  const [selectedUnity, setSelectedUnity] = useState<string>('')
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string>('')
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
 
   const getDestino = async () => {
@@ -153,49 +158,64 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     setMenuOpen2(false)
   }
 
-  const handleUnityChange = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
-    const selectedUnityId = event.target.value
-    setSelectedUnity(selectedUnityId)
-    //console.log(selectedUnityId)
+  const handleSelectWorkflow = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
+    const setSelectedWorkflowId = event.target.value
+    setSelectedWorkflow(setSelectedWorkflowId)
+    //console.log(setSelectedWorkflowId)
 
     // Filtrar la lista de usuarios para mostrar solo los que pertenecen a la unidad seleccionada
-    const filteredUsers = userList.filter(user => user.unity === selectedUnityId)
+    ///const filteredUsers = userList.filter(user => user.unity === setSelectedWorkflowId)
+    //const selectedUsersIds = filteredUsers.map(user => user.name)
+    //console.log(filteredUsers)
+    /// setUserList(filteredUsers)
+    //console.log(selectedUsersIds)
+  }
+
+  const dateWorkflow = groupworkflowName.filter(groupworkflowName => groupworkflowName.nombre === selectedWorkflow)
+  const office = dateWorkflow[0]?.pasos[0]?.oficina
+  // console.log(office)
+
+  const userSelectOffice = userList.filter(userList => userList.unity === office)
+  //console.log(userSelectOffice)
+  /*const handleUnityChange = (event: SelectChangeEvent<string>, child: React.ReactNode) => {
+    const setSelectedWorkflowId = event.target.value
+
+    setsetSelectedWorkflow(setSelectedWorkflowId)
+    console.log(setSelectedWorkflowId)
+
+    const setSelectedWorkflowObj = groupworkflowName.find(option => option.nombre === setSelectedWorkflowId)
+    if (setSelectedWorkflowObj) {
+      // Asumiendo que pasos es un arreglo, puedes acceder al primer elemento (índice 0) como sigue
+      console.log('entroooo')
+      if (setSelectedWorkflowObj.steps) {
+        console.log('entrooo2')
+        const b = setSelectedWorkflowObj.steps
+        //a = setSelectedWorkflowObj.steps.pasos[0].idOffice
+        //console.log(a)
+      }
+
+      // Ahora puedes trabajar con idOffice
+    } else {
+      console.error('No se encontró la unidad seleccionada')
+    }
+
+    // Filtrar la lista de usuarios para mostrar solo los que pertenecen a la unidad seleccionada
+    const filteredUsers = userList.filter(user => user.unity === setSelectedWorkflowId)
     //const selectedUsersIds = filteredUsers.map(user => user.name)
     //console.log(filteredUsers)
     setUserList(filteredUsers)
     //console.log(selectedUsersIds)
-  }
+  }*/
 
   const handleSubmit = () => {
     const data: docData = {
-      worflowName: workflow,
+      worflowName: selectedWorkflow,
       ci: selectedUsers
     }
     toggle()
     reset()
     console.log(data)
-
     dispatch(SendDoc({ docId, data }))
-
-    toast.success('Documento enviado con éxito', {
-      position: toast.POSITION.TOP_RIGHT,
-      autoClose: 3000 // Duración de la notificación en milisegundos (3 segundos en este caso)
-    })
-
-    /*
-    axios
-      .post(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${docId}/sent-document-employeeds`, data, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Respuesta de la API:', response.data)
-        // Realizar cualquier acción adicional después de la petición
-      })
-      .catch(error => {
-        console.error('Error al realizar la petición POST:', error)
-      })*/
   }
 
   const handleClose = () => {
@@ -251,30 +271,31 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             )}
             </FormControl>*/}
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel>Flujo de Trabajo</InputLabel>
-            <Select value={selectedUnity} onChange={handleUnityChange} label='Seleccionar Unidad'>
+            <InputLabel>Seleccionar Flujo de Trabajo</InputLabel>
+            <Select value={selectedWorkflow} onChange={handleSelectWorkflow} label='Seleccionar Flujo de Trabajo'>
               {groupworkflowName.map(option => (
                 <MenuItem key={option._id} value={option.nombre}>
                   {option.nombre}
                 </MenuItem>
               ))}
             </Select>
+            <div style={{ fontSize: '12px', marginTop: '4px' }}>Oficina a enviar: {office}</div>
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 6 }}>
-            <InputLabel>Destino</InputLabel>
+            <InputLabel>Seleccionar Usuario de Destino</InputLabel>
 
             <Select
               multiple
               value={selectedUsers}
               onChange={handleUserSelect}
-              label='Destino'
+              label='Seleccionar Usuario de Destino'
               open={menuOpen2} // Controla la apertura/cierre del menú
               onClose={() => setMenuOpen2(false)} // Cierra el menú cuando se hace clic fuera de él
               onOpen={() => setMenuOpen2(true)}
-              disabled={!selectedUnity}
+              disabled={!selectedWorkflow}
             >
-              {userList.map(user => (
+              {userSelectOffice.map(user => (
                 <MenuItem key={user._id} value={user.ci}>
                   {user.name}
                 </MenuItem>

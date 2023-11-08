@@ -99,10 +99,31 @@ const UserDropdown = (props: Props) => {
   }, [dispatch])
 
   const userName = useSelector((state: RootState) => state.user.user)
+
+  const convertBase64toImagen = (file: string) => {
+    //return `data:image/png;base64,${file}`
+    return file
+  }
   //console.log(userName)
 
   return (
     <Fragment>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            textAlign: 'center',
+            fontFamily: 'NuevaFuente, sans-serif',
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          }}
+        >
+          {userName.name + ' ' + userName.lastName}
+        </Typography>
+        <Typography variant='body2' sx={{ textAlign: 'center', fontFamily: 'NuevaFuente, sans-serif' }}>
+          {userName.ci}
+        </Typography>
+      </Box>
       <Badge
         overlap='circular'
         onClick={handleDropdownOpen}
@@ -117,9 +138,10 @@ const UserDropdown = (props: Props) => {
           alt='John Doe'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={convertBase64toImagen(userName.file)}
         />
       </Badge>
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -138,7 +160,11 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar
+                alt='John Doe'
+                src={convertBase64toImagen(userName.file)}
+                sx={{ width: '2.5rem', height: '2.5rem' }}
+              />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{userName.name}</Typography>

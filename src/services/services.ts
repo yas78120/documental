@@ -9,7 +9,7 @@ import { fetchUser } from 'src/store/apps/user'
 
 export const Login = async (data: ParsedUrlQuery) => {
   const options = {
-    url: '/central/login-central',
+    url: '/api/login-central',
     method: 'POST',
     data: data
   }
@@ -30,10 +30,10 @@ export const Login = async (data: ParsedUrlQuery) => {
 
 export async function Redirect(id: string, token: string) {
   if (id != undefined && token != undefined) {
-    //console.log('data: ' + id + ' ' + token)
+    console.log('data: ' + id + ' ' + token)
     const router = useRouter()
     const app = id
-    // console.log(app)
+    console.log(app)
     console.log('app', app)
     console.log('tokennnnnnn', token)
 
@@ -56,20 +56,20 @@ export async function Redirect(id: string, token: string) {
         if (res.status === 401 || res.status == 404) {
           console.log('errorrrrrrrrrrrr')
           router.replace('http://localhost:3000/login')
-          //router.replace('http://10.10.214.167:3000/login')
+          //router.replace('http://10.10.214.225:3000/login')
           //router.replace('http://10.10.214.219:3005/login')
         }
       } catch (error: any) {
         console.log(error)
         alert(error.response.data.message)
         router.push('http://localhost:3000/login')
-        //router.push('http://10.10.214.167:3000/login')
+        //router.push('http://10.10.214.225:3000/login')
         //router.push('http://10.10.214.219:3005/login')
       }
     } else {
       // console.log('no existe tokennnnnnnnnnn')
       router.replace('http://localhost:3000/login')
-      //router.replace('http://10.10.214.167:3000/login')
+      //router.replace('http://10.10.214.225:3000/login')
       //router.replace('http://10.10.214.219:3005/login')
     }
   }

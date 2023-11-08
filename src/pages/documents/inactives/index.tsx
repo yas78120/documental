@@ -155,7 +155,7 @@ const AssetList: React.FC = () => {
       setDialogOpen(false)
       onSwitchToggle(id)
 
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}${id}/active`)
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_DOCUMENTAL}active/${id}`)
       console.log(response + 'se agrego con exito')
       fetchData()
     }

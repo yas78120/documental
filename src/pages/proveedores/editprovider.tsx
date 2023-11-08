@@ -57,7 +57,7 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
   justifyContent: 'space-between',
   backgroundColor: theme.palette.background.default
 }))
-
+/*
 const schema = yup.object().shape({
   direction: yup.string().required(),
   phone: yup
@@ -69,7 +69,7 @@ const schema = yup.object().shape({
     .string()
     .min(3, obj => showErrors('Nombre', obj.value.length, obj.min))
     .required()
-})
+})*/
 
 const defaultValues = {
   name: '',

@@ -1,88 +1,121 @@
 import React, { useState, useEffect } from 'react'
 import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import { Button } from '@mui/material'
+import { Autocomplete, Button } from '@mui/material'
 import axios from 'axios'
+import { fetchData } from 'src/store/apps/doc'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from 'src/store'
+import { addWorkflow } from 'src/store/apps/workflow'
 
-interface StepOption {
-  _id: string
-  step: string
-  // Otros campos si los hay
-}
-interface workflow {
+interface Workflow {
   nombre: string
   descriptionWorkflow: string
-  stepName: string
-  // Otros campos si los hay
+  pasos: {
+    paso: number
+    oficina: string
+  }[]
 }
 
-const AddForkflow = () => {
-  // Estado para el componente de entrada de texto
+interface Office {
+  id: number
+  name: string
+}
+
+const AddWorkflow = () => {
   const [nombre, setNombre] = useState('')
   const [descriptionWorkflow, setDescriptionWorkflow] = useState('')
-  const [stepName, setStepName] = useState('')
+  const [offices, setOffices] = useState<Office[]>([])
+  const [workflowSteps, setWorkflowSteps] = useState<{ paso: number; oficina: string }[]>([])
+  const [selectedOffices, setSelectedOffices] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const dispatch = useDispatch<AppDispatch>()
 
-  // Estado para controlar el menú abierto/cerrado
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // Estado para las opciones cargadas desde la API
-  const [apiOptions, setApiOptions] = useState<StepOption[]>([])
-
-  const handledescriptionWorkflowChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDescriptionWorkflow(event.target.value)
+  const fetchOffice = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_DOCUMENTAL_ORGANIGRAMA}`)
+      setOffices(response.data)
+    } catch (error) {
+      console.error('Error al obtener la lista de oficinas:', error)
+    }
   }
 
-  // Manejadores de cambio para los componentes
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNombre(event.target.value)
-  }
-
-  const handleOptionChange = (event: SelectChangeEvent<string>) => {
-    setStepName(event.target.value)
-    setMenuOpen(false) // Cerrar el menú al seleccionar una opción
-  }
-
-  // Efecto para cargar las opciones desde la API
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_DOCUMENTAL_STEP}active`)
-      .then(response => response.json())
-      .then(data => {
-        setApiOptions(data)
-      })
-      .catch(error => {
-        console.error('Error al cargar las opciones:', error)
-      })
+    fetchOffice()
+    const defaultSteps = [
+      { paso: 1, oficina: '' },
+      { paso: 2, oficina: '' }
+    ]
+    setWorkflowSteps(defaultSteps)
   }, [])
+  /*
+  const handleAddStep = () => {
+    const newStep = {
+      paso: workflowSteps.length + 1,
+      oficina: ''
+    }
+    setWorkflowSteps([...workflowSteps, newStep])
+  }*/
 
-  const handleSubmit = () => {
-    const data: workflow = {
-      nombre: nombre,
-      descriptionWorkflow: descriptionWorkflow,
-      stepName: stepName
-      // Agregar otros campos si los hay
+  const handleRemoveStep = (index: number) => {
+    const updatedSteps = [...workflowSteps]
+    updatedSteps.splice(index, 1)
+
+    // Remove the selected office from the selectedOffices array
+    const removedOffice = selectedOffices[index]
+    const updatedSelectedOffices = selectedOffices.filter(office => office !== removedOffice)
+    setSelectedOffices(updatedSelectedOffices)
+
+    // Renumber the remaining steps
+    /*
+    for (let i = index; i < updatedSteps.length; i++) {
+      updatedSteps[i].paso = i + 1
+    }
+*/
+    setWorkflowSteps(updatedSteps)
+  }
+
+  const handleOfficeChange = (event: React.ChangeEvent<{}>, value: string | null, index: number) => {
+    if (value === null) {
+      return
     }
 
-    // Realizar la petición POST a la API
+    const selectedOffice = value
+
+    // Check if the selected office is already selected in other steps
+    if (selectedOffices.includes(selectedOffice)) {
+      alert('Esta oficina ya ha sido seleccionada en otro paso. Por favor, elija una oficina diferente.')
+      return
+    }
+
+    const updatedSteps = [...workflowSteps]
+    updatedSteps[index].oficina = selectedOffice
+    setWorkflowSteps(updatedSteps)
+
+    // Update the selectedOffices array
+    setSelectedOffices([...selectedOffices.slice(0, index), selectedOffice, ...selectedOffices.slice(index + 1)])
+
+    // Clear the search term when an office is selected
+    setSearchTerm('')
+  }
+
+  const handleSubmit = async () => {
+    const data: Workflow = {
+      nombre: nombre,
+      descriptionWorkflow: descriptionWorkflow,
+      pasos: workflowSteps
+    }
     console.log(data)
-    axios
-      .post(`${process.env.NEXT_PUBLIC_DOCUMENTAL_WORKFLOW}`, data, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Respuesta de la API:', response.data)
-        // Realizar cualquier acción adicional después de la petición
-        setNombre('')
-        setDescriptionWorkflow('')
-        setStepName('')
-      })
-      .catch(error => {
-        console.error('Error al realizar la petición POST:', error)
-      })
+    dispatch(addWorkflow({ ...data }))
+
+    setNombre('')
+    setDescriptionWorkflow('')
+    setWorkflowSteps([])
+
+    const defaultSteps = [
+      { paso: 1, oficina: '' },
+      { paso: 2, oficina: '' }
+    ]
+    setWorkflowSteps(defaultSteps)
   }
 
   return (
@@ -91,36 +124,71 @@ const AddForkflow = () => {
         <div style={{ textAlign: 'center' }}>
           <h2>Flujo de trabajo</h2>
         </div>
-        {/* Componentes en una fila */}
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <TextField label='Nombre' variant='outlined' fullWidth value={nombre} onChange={handleInputChange} />
-          <TextField
-            label='Descripcion'
-            variant='outlined'
-            fullWidth
-            value={descriptionWorkflow}
-            onChange={handledescriptionWorkflowChange}
-          />
-          {/* Componente de selección única */}
-          <FormControl variant='outlined' fullWidth>
-            <InputLabel>Seleccionar Opción</InputLabel>
-            <Select
-              value={stepName}
-              onChange={handleOptionChange}
-              label='Seleccionar Step'
-              open={menuOpen} // Controlar la apertura/cierre del menú
-              onClose={() => setMenuOpen(false)} // Cerrar el menú cuando se hace clic fuera de él
-              onOpen={() => setMenuOpen(true)} // Abrir el menú cuando se hace clic en él
-            >
-              {apiOptions.map(option => (
-                <MenuItem key={option._id} value={option.step}>
-                  {option.step}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button variant='contained' color='primary' onClick={handleSubmit}>
-            Enviar
+        <TextField
+          label='Nombre'
+          variant='outlined'
+          fullWidth
+          value={nombre}
+          onChange={e => setNombre(e.target.value)}
+        />
+        <TextField
+          label='Descripción'
+          variant='outlined'
+          fullWidth
+          value={descriptionWorkflow}
+          onChange={e => setDescriptionWorkflow(e.target.value)}
+        />
+        <div style={{ textAlign: 'left' }}>
+          <h3>Pasos que debe seguir el workflow</h3>
+        </div>
+        {workflowSteps.map((paso, index) => (
+          <div
+            key={index}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '16px',
+              alignItems: 'center'
+            }}
+          >
+            <TextField
+              label={`Paso`}
+              variant='outlined'
+              style={{ width: '100px', textAlign: 'center' }}
+              value={paso.paso.toString()}
+              disabled
+            />
+            <Autocomplete
+              options={offices
+                .filter(office => !selectedOffices.includes(office.name))
+                .filter(office => office.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map(office => office.name)}
+              value={paso.oficina || undefined}
+              onChange={(event, value) => handleOfficeChange(event, value, index)}
+              disableClearable
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Oficina'
+                  variant='outlined'
+                  style={{ width: '300px' }}
+                  InputProps={{
+                    ...params.InputProps
+                  }}
+                />
+              )}
+            />
+            <Button variant='outlined' color='error' onClick={() => handleRemoveStep(index)}>
+              Eliminar Paso
+            </Button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <Button variant='outlined' color='primary' style={{ width: '200px' }} onClick={handleAddStep}>
+            Agregar Paso
+          </Button>
+          <Button variant='contained' color='primary' style={{ width: '200px' }} onClick={handleSubmit}>
+            Crear Workflow
           </Button>
         </div>
       </form>
@@ -128,4 +196,4 @@ const AddForkflow = () => {
   )
 }
 
-export default AddForkflow
+export default AddWorkflow
