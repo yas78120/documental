@@ -37,7 +37,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Actions Imports
 //import { deleteDoc } from 'src/store/apps/user'
-import User, { deleteDoc, fetchData, fetchDataRecib, fetchDataRecibWorkflow } from 'src/store/apps/doc'
+import User, { deleteDoc, fetchData } from 'src/store/apps/doc'
 
 // ** Third Party Components
 import axios from 'axios'
@@ -503,6 +503,27 @@ const DocList = () => {
       }
     },
 */
+    {
+      field: 'digitalSignatureDocument',
+      headerName: 'Firma Digital',
+      flex: 0.1,
+      minWidth: 110,
+      renderCell: ({ row }: CellType) => {
+        if (row.digitalSignatureDocument.length !== 0) {
+          return (
+            <Button variant='text' color='success'>
+              Con Firma
+            </Button>
+          )
+        } else {
+          return (
+            <Button variant='text' color='error'>
+              Sin Firma
+            </Button>
+          )
+        }
+      }
+    },
 
     {
       field: 'fileBase64',
@@ -712,7 +733,7 @@ const DocList = () => {
           <DataGrid
             getRowId={row => row._id}
             autoHeight
-            rows={store}
+            rows={store || []}
             columns={columns}
             pageSize={limit}
             sx={{

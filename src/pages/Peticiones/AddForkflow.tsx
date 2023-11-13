@@ -47,14 +47,14 @@ const AddWorkflow = () => {
     ]
     setWorkflowSteps(defaultSteps)
   }, [])
-  /*
+
   const handleAddStep = () => {
     const newStep = {
       paso: workflowSteps.length + 1,
       oficina: ''
     }
     setWorkflowSteps([...workflowSteps, newStep])
-  }*/
+  }
 
   const handleRemoveStep = (index: number) => {
     const updatedSteps = [...workflowSteps]

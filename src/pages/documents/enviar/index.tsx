@@ -87,7 +87,6 @@ interface Docu {
     typeName: string
   }
   description: string
-
   stateDocumentUserSend: string
   active: boolean
   digitalSignatureDocument: {
@@ -222,7 +221,26 @@ const DocList = () => {
 
   const columns: GridColDef[] = [
     {
-      flex: 0.07,
+      field: 'createdAt',
+      headerName: '',
+      flex: 0.05,
+      minWidth: 79,
+      renderCell: ({ row }: CellType) => {
+        // Suponiendo que createdAt es un campo con un formato de fecha válido
+        const date = new Date(row.createdAt)
+        const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        const formattedDate = date.toLocaleDateString()
+
+        return (
+          <Box textAlign='center'>
+            <Typography variant='body1'>{formattedTime}</Typography>
+            <Typography variant='caption'>{formattedDate}</Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      flex: 0.01,
       minWidth: 60,
       field: 'actions',
       headerName: '',
@@ -710,7 +728,7 @@ const DocList = () => {
                         <MenuItem value={50}>50</MenuItem>
                       </Select>
                     </FormControl>
-                    <Pagination count={totalpages} page={page} onChange={(event, value) => setPage(value)} />
+                    <Pagination count={totalpages || 1} page={page} onChange={(event, value) => setPage(value)} />
                   </Box>
                 </>
               )

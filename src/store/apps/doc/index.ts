@@ -119,7 +119,7 @@ export const fetchData = createAsyncThunk('appDoc/fetchData', async (params: Dat
   }
 })*/
 
-export const fetchDataSendWorkflow = createAsyncThunk('appDoc/fetchDataSendWorkflow', async (params: DataParams) => {
+/*export const fetchDataSendWorkflow = createAsyncThunk('appDoc/fetchDataSendWorkflow', async (params: DataParams) => {
   try {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_DOCUMENTAL}obtain-documents-send-with-workflow`)
     //console.log(response)
@@ -158,7 +158,7 @@ export const fetchDataObserved = createAsyncThunk('appDoc/fetchDataObserved', as
   } catch (error) {
     throw error
   }
-})
+})*/
 
 export const fetchDocPage = createAsyncThunk(
   'appDoc/fetchUsersByPage',
@@ -199,7 +199,6 @@ export const SendDoc = createAsyncThunk(
       //console.log(docId)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_DOCUMENTAL}send-document-employeeds/${id}`, data)
       dispatch(fetchData(getState()))
-      dispatch(fetchDataSendWorkflow(getState()))
 
       if (response.status === 201) {
         Swal.fire({
@@ -283,7 +282,6 @@ export const DeriveDoc = createAsyncThunk(
       console.log(data)
       console.log(docId)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_DOCUMENTAL}derive-document-employeed/${docId}`, data)
-      dispatch(fetchDataRecibWorkflow(getState()))
       if (response.status === 201) {
         Swal.fire({
           icon: 'success',
@@ -320,8 +318,7 @@ export const ObservedDoc = createAsyncThunk(
         `${process.env.NEXT_PUBLIC_DOCUMENTAL}mark-document-observed/${docId}/${paso}`,
         data
       )
-      dispatch(fetchDataRecibWorkflow(getState()))
-      dispatch(fetchDataObserved(getState()))
+
       console.log(response)
       return response.data
     } catch (error) {

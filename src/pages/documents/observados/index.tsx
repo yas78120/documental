@@ -262,7 +262,7 @@ const DocList = () => {
         )
       }
     },
-
+    /*
     {
       flex: 0.1,
       minWidth: 210,
@@ -287,7 +287,7 @@ const DocList = () => {
         )
       }
     },
-
+*/
     {
       flex: 0.1,
       minWidth: 140,

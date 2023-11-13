@@ -78,11 +78,6 @@ interface Docu {
   fileRegister?: {
     _idFile: string
     filename: string
-    size: number
-    filePath: string
-    status: string
-    category: string
-    extension: string
   }
   bitacoraWorkflow?: {
     _id: string
@@ -100,16 +95,29 @@ interface Docu {
       _id: string
     }
   }
-  userInfo?: {
-    name: string
-    unity: string
+  bitacoraWithoutWorkflow?: {
+    idOfficeUserSend: string
+    idUserSendOrigin: string
+    nameOficeUser: string
+    receivedUsers?: {
+      ciUser: string
+      idOfUser: string
+      _id: string
+      nameOficeUserRecieved: string
+      stateDocumentUser: string
+    }[]
+  }[]
+  userReceivedDocument?: {
+    _id: string
+    ciUser: string
+    dateRecived: Date
+    nameOfficeUserRecieved: string
+    observado: Boolean
+    stateDocumentUser: string
   }
   stateDocumentUserSend: string
-  stateDocumetUser: string
-  base64Template: string
-  fileBase64: string
-  stateDocument: string
   active: Boolean
+  updatedAt: string
 }
 interface Redux {
   getState: any
@@ -222,6 +230,19 @@ const DocList = () => {
   }
 
   const columns: GridColDef[] = [
+    {
+      field: 'createdAt',
+      headerName: '',
+      flex: 0.1,
+      minWidth: 65,
+      renderCell: ({ row }: CellType) => {
+        // Suponiendo que createdAt es un campo con un formato de fecha válido
+        const date = new Date(row.updatedAt)
+        const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+        return <Typography variant='body1'>{formattedTime}</Typography>
+      }
+    },
     {
       flex: 0.08,
       minWidth: 60,
